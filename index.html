@@ -1,0 +1,3464 @@
+<!-- TailwindCSS（酒馆助手已内置，但注释里说还未在酒馆使用，所以保留外链） -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+
+<!-- Uicons -->
+<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css" />
+<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
+
+<!-- jQuery 已由酒馆助手内置，无需重复引入 -->
+
+
+    <style type="text/tailwindcss">
+      /* === 1. 颜色变量 === */
+      :root {
+        --root-font-size: 16px;
+        --avatar-top-size: 28px;
+        --avatar-tweet-size: 36px;
+        --app-bg: #000000;
+        --app-text: #e7e9ea;
+        --app-text-dim: #71767b;
+        --app-border: #2f3336;
+        --app-hover: rgba(239, 243, 244, 0.1);
+        --app-header-bg: rgba(0, 0, 0, 0.75);
+        --app-accent: #1d9bf0;
+        --app-quote-bg: rgba(0, 0, 0, 0);
+        --app-media-bg: #1f2937;
+        --app-media-text: #d1d5db;
+        --app-link-bg: #000000;
+        --app-poll-text: #ffffff;
+        --app-deleted-bg: rgba(31, 41, 55, 0.5);
+        --app-deleted-border: rgba(55, 65, 81, 0.5);
+        --app-deleted-text: #6b7280;
+        --app-media-border: rgba(55, 65, 81, 0.5);
+        --sensitive-bg: rgba(22, 24, 28, 0.95); /* Slightly lighter than pure black */
+        --sensitive-text: #ffffff;
+        --sensitive-text-dim: #9ca3af;
+        --sensitive-btn-bg: rgba(255, 255, 255, 0.1);
+        --sensitive-btn-hover: rgba(255, 255, 255, 0.2);
+      }
+
+      html {
+        font-size: var(--root-font-size);
+      }
+
+      .avatar-top {
+        width: var(--avatar-top-size);
+        height: var(--avatar-top-size);
+      }
+
+      .avatar-tweet {
+        width: var(--avatar-tweet-size);
+        height: var(--avatar-tweet-size);
+      }
+
+      .avatar-col {
+        width: var(--avatar-tweet-size);
+      }
+
+      .light-mode {
+        --app-bg: #ffffff;
+        --app-text: #0f1419;
+        --app-text-dim: #536471;
+        --app-border: #eff3f4;
+        --app-hover: rgba(15, 20, 25, 0.1);
+        --app-header-bg: rgba(255, 255, 255, 0.85);
+        --app-quote-bg: rgba(0, 0, 0, 0.03);
+        --app-media-bg: #f3f4f6;
+        --app-media-text: #4b5563;
+        --app-link-bg: #f9fafb;
+        --app-poll-text: #0f1419;
+        --app-deleted-bg: #f3f4f6;
+        --app-deleted-border: #e5e7eb;
+        --app-deleted-text: #6b7280;
+        --app-media-border: #e5e7eb;
+        --sensitive-bg: rgba(243, 244, 246, 0.95);
+        --sensitive-text: #0f1419;
+        --sensitive-text-dim: #536471;
+        --sensitive-btn-bg: rgba(0, 0, 0, 0.05);
+        --sensitive-btn-hover: rgba(0, 0, 0, 0.1);
+      }
+
+      @media (max-width: 320px) {
+        :root {
+          --root-font-size: 14px;
+          --avatar-top-size: 26px;
+          --avatar-tweet-size: 32px;
+        }
+      }
+
+      @media (max-width: 240px) {
+        :root {
+          --root-font-size: 12px;
+          --avatar-top-size: 22px;
+          --avatar-tweet-size: 28px;
+        }
+      }
+
+      /* === 2. 核心容器 === */
+      .app-wrapper {
+        @apply flex justify-center items-center;
+      }
+
+      .app-container {
+        background-color: var(--app-bg);
+        color: var(--app-text);
+        border-color: var(--app-border);
+        @apply w-[95vw] max-w-[360px] aspect-[9/16] rounded-xl overflow-hidden relative flex flex-col border;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* 滚动容器 */
+      .view-container {
+        @apply flex-1 overflow-y-auto w-full h-full relative;
+        scrollbar-width: none;
+      }
+      .view-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* === 3. 顶部栏 === */
+      .sticky-header {
+        background-color: var(--app-header-bg);
+        border-bottom: 1px solid var(--app-border);
+        @apply sticky top-0 z-30 backdrop-blur-md;
+      }
+
+      .header-row {
+        @apply h-12 flex items-center justify-between px-4 relative;
+      }
+
+      .tab-row {
+        @apply flex border-b h-10;
+        border-color: var(--app-border);
+      }
+      .tab-item {
+        @apply flex-1 flex justify-center items-center font-bold text-sm cursor-pointer transition hover:bg-white/5 relative;
+        color: var(--app-text-dim);
+      }
+      .tab-item.tab-active {
+        color: var(--app-text);
+      }
+      .tab-indicator {
+        background-color: var(--app-accent);
+        @apply absolute bottom-0 w-10 h-1 rounded-full hidden;
+      }
+      .tab-item.tab-active .tab-indicator {
+        display: block;
+      }
+
+      /* === 4. 推文卡片 === */
+      .tweet-card {
+        border-bottom: 1px solid var(--app-border);
+        @apply p-3 cursor-pointer transition duration-200;
+      }
+      .tweet-body {
+        @apply flex gap-3;
+      }
+
+      /* 状态头 (转推/点赞) */
+      .tweet-status-header {
+        @apply flex items-center gap-2 text-xs font-bold mb-1 ml-8 sm:ml-12;
+        color: var(--app-text-dim);
+      }
+
+      /* 引用推文盒子 */
+      .quote-box {
+        border: 1px solid var(--app-border);
+        background-color: var(--app-quote-bg);
+        @apply mt-3 rounded-xl p-3 overflow-hidden hover:bg-white/5 transition;
+      }
+
+      .action-btn-group {
+        color: var(--app-text-dim);
+        @apply flex justify-between mt-2 text-sm;
+      }
+      .action-item {
+        @apply flex items-center gap-1 transition-colors duration-200 p-1 -ml-1 rounded-full relative;
+      }
+      .action-count {
+        @apply text-xs opacity-80;
+      }
+
+      /* === 5. 底部导航栏 === */
+      .nav-bar {
+        background-color: var(--app-bg);
+        border-top: 1px solid var(--app-border);
+        @apply h-12 flex items-center justify-around text-xl shrink-0 z-40 relative;
+      }
+      .nav-item {
+        @apply p-2 transition cursor-pointer flex items-center justify-center w-full h-full;
+        color: var(--app-text-dim);
+      }
+      .nav-active {
+        color: var(--app-text);
+      }
+
+      /* === 6. 悬浮按钮 (FAB) === */
+      .float-btn {
+        background-color: var(--app-accent);
+        @apply absolute bottom-16 right-4 w-12 h-12 rounded-full text-white shadow-lg flex items-center justify-center text-xl cursor-pointer z-50 transition-all duration-300 transform;
+      }
+      .float-btn:hover {
+        filter: brightness(0.9);
+        transform: scale(1.05);
+      }
+      .float-btn.hidden-btn {
+        transform: scale(0) !important;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .float-btn.fade-out {
+        opacity: 0.4;
+        transform: scale(0.9);
+      }
+
+      /* === 7. 搜索框 === */
+      .search-box {
+        background-color: var(--app-border);
+        @apply flex items-center gap-3 rounded-full px-4 h-8 flex-1 mx-4 text-sm transition focus-within:ring-1 focus-within:ring-blue-400 focus-within:bg-transparent border border-transparent focus-within:border-blue-400;
+      }
+
+      /* === 8. 敏感内容警告 === */
+      .sensitive-wrapper {
+        @apply relative overflow-hidden transition-all duration-300 rounded-2xl;
+        aspect-ratio: 16/9;
+      }
+      .sensitive-wrapper.sensitive-revealed {
+        aspect-ratio: auto;
+      }
+      .sensitive-blur {
+        filter: blur(12px);
+        transform: scale(1.1); /* Prevent blurred edges from shrinking */
+      }
+      .sensitive-overlay {
+        background-color: var(--sensitive-bg);
+        @apply absolute inset-0 z-20 flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-opacity duration-300 backdrop-blur-sm rounded-2xl;
+      }
+      .sensitive-overlay:hover {
+        opacity: 0.9;
+      }
+      .sensitive-revealed .sensitive-overlay {
+        @apply opacity-0 pointer-events-none;
+      }
+      .sensitive-revealed .sensitive-blur {
+        filter: none;
+        transform: none;
+        transition: filter 0.3s, transform 0.3s;
+      }
+      .sensitive-text-primary {
+        color: var(--sensitive-text);
+      }
+      .sensitive-text-secondary {
+        color: var(--sensitive-text-dim);
+      }
+      .sensitive-btn {
+        color: var(--sensitive-text);
+        background-color: var(--sensitive-btn-bg);
+        @apply font-bold text-xs px-2 py-1 rounded-full hover:backdrop-brightness-110 transition;
+      }
+      .sensitive-btn:hover {
+        background-color: var(--sensitive-btn-hover);
+      }
+      .sensitive-stack {
+        width: 100%;
+        height: 100%;
+      }
+      .sensitive-eye {
+        font-size: 1.5rem;
+      }
+
+      @media (max-width: 320px) {
+        .sensitive-eye {
+          font-size: 1.25rem;
+        }
+        .sensitive-stack {
+          transform: translateY(-6px);
+        }
+      }
+
+      @media (max-width: 240px) {
+        .sensitive-eye {
+          font-size: 1.1rem;
+        }
+        .sensitive-stack {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* === 9. 个人资料编辑相关 === */
+      .edit-input-group {
+        @apply mb-4 relative;
+      }
+      .edit-input-label {
+        color: var(--app-text-dim);
+        @apply text-xs mb-1 ml-1;
+      }
+      .edit-input {
+        background-color: transparent;
+        border: 1px solid var(--app-border);
+        color: var(--app-text);
+        @apply w-full rounded px-2 py-2 text-sm outline-none focus:border-blue-500 transition;
+      }
+      .edit-textarea {
+        background-color: transparent;
+        border: 1px solid var(--app-border);
+        color: var(--app-text);
+        @apply w-full rounded px-2 py-2 text-sm outline-none focus:border-blue-500 transition resize-none h-20;
+      }
+
+      /* URL 输入模态框 */
+      .modal-overlay {
+        display: none; /* 默认隐藏 */
+        background-color: rgba(0, 0, 0, 0.6);
+        @apply absolute inset-0 z-[60] items-center justify-center backdrop-blur-sm;
+      }
+      .modal-overlay.modal-visible {
+        display: flex; /* 显示时使用 flex */
+      }
+      .modal-box {
+        background-color: var(--app-bg);
+        border: 1px solid var(--app-border);
+        @apply w-[85%] max-h-[80%] flex flex-col rounded-2xl p-4 shadow-2xl transform transition-all scale-100;
+        color: var(--app-text);
+      }
+
+      /* === 10. 发帖界面 === */
+      .compose-textarea {
+        background: transparent;
+        @apply w-full h-full text-lg outline-none resize-none placeholder-gray-500;
+        color: var(--app-text);
+      }
+      .compose-toolbar {
+        border-top: 1px solid var(--app-border);
+        @apply h-12 flex items-center px-4 gap-4;
+        color: var(--app-accent);
+      }
+      .compose-more-panel {
+        background-color: var(--app-bg);
+        border-top: 1px solid var(--app-border);
+        @apply p-4 text-sm;
+      }
+      .compose-preview-item {
+        @apply relative rounded-xl overflow-hidden border;
+        border-color: var(--app-border);
+      }
+      .remove-media-btn {
+        @apply absolute top-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer backdrop-blur-sm transition z-10;
+      }
+
+      /* Custom Scrollbar Optimization */
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.4);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      /* 原 body 标签上的样式，转换为普通 CSS */
+      .load-wrapper {
+        background: transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+
+<div class="load-wrapper">
+  <div id="app-wrapper" class="app-wrapper">
+      <div id="app-box" class="app-container">
+        <!-- =======================
+             VIEW 1: 首页 (Home)
+             ======================= -->
+        <div id="view-home" class="view-container">
+          <header class="sticky-header">
+            <div class="header-row">
+              <div
+                class="avatar-top rounded-full bg-gray-600 overflow-hidden cursor-pointer hover:opacity-80 transition"
+                onclick="goToProfile()"
+              >
+                <img id="home-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Me" />
+              </div>
+              <div class="absolute inset-x-0 flex justify-center text-lg pointer-events-none">
+                <i class="fa-brands fa-x-twitter"></i>
+              </div>
+              <div class="flex gap-4" style="color: var(--app-text-dim)">
+                <i class="fa-regular fa-moon hover:text-white transition cursor-pointer" id="theme-btn"></i>
+                <i class="fa-solid fa-rotate-right hover:text-white transition cursor-pointer" id="refresh-btn"></i>
+              </div>
+            </div>
+
+            <div class="tab-row" id="home-tabs">
+              <div class="tab-item tab-active" onclick="switchTab(this, 'home-feed-recommend')">
+                为您推荐
+                <div class="tab-indicator"></div>
+              </div>
+              <div class="tab-item" onclick="switchTab(this, 'home-feed-following')">
+                正在关注
+                <div class="tab-indicator"></div>
+              </div>
+            </div>
+          </header>
+
+          <div id="home-content">
+            <!-- 1. 为您推荐 -->
+            <div id="home-feed-recommend">
+              <!-- 由 JS 根据规则数据渲染 -->
+              <div id="feed-recommend-list"></div>
+              <div class="h-24 flex items-center justify-center text-gray-600 text-sm">到底了</div>
+            </div>
+
+            <!-- 2. 正在关注 -->
+            <div id="home-feed-following" class="hidden">
+              <!-- 由 JS 根据规则数据渲染 -->
+              <div id="feed-following-list"></div>
+              <div class="h-24 flex items-center justify-center text-gray-600 text-sm">到底了</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 2: 推文详情 (Detail)
+             ======================= -->
+        <div id="view-detail" class="view-container hidden">
+          <header class="sticky-header">
+            <div class="header-row">
+              <button
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                id="detail-back-btn"
+                aria-label="Back"
+              >
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div class="font-bold text-lg ml-2">帖子</div>
+              <div class="flex-1"></div>
+            </div>
+          </header>
+
+          <!-- 祖先链容器（回复推文时显示父级链） -->
+          <div class="px-4 pt-4" id="detail-ancestors"></div>
+
+          <!-- 主推文详情 -->
+          <div class="px-4" id="detail-main"></div>
+
+          <!-- 评论区 -->
+          <div id="detail-replies-section">
+            <div class="px-4 pt-4 pb-2 text-sm font-bold" style="color: var(--app-text-dim)">回复</div>
+            <div id="detail-replies"></div>
+          </div>
+        </div>
+
+        <!-- 删除了 view-detail-following，统一使用 view-detail -->
+
+        <!-- =======================
+             VIEW 3: 搜索 (Search)
+             ======================= -->
+        <div id="view-search" class="view-container hidden">
+          <header class="sticky-header">
+            <div class="header-row">
+              <div class="avatar-top rounded-full bg-gray-600 overflow-hidden cursor-pointer" onclick="goToProfile()">
+                <img id="search-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Me" />
+              </div>
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+                <input
+                  type="text"
+                  placeholder="搜索"
+                  class="bg-transparent outline-none w-full"
+                  style="color: var(--app-text)"
+                />
+              </div>
+              <div class="w-8 flex justify-end" style="color: var(--app-text-dim)">
+                <i class="fa-solid fa-gear"></i>
+              </div>
+            </div>
+            <div class="tab-row">
+              <div class="tab-item tab-active">
+                为您推荐
+                <div class="tab-indicator"></div>
+              </div>
+              <div class="tab-item">趋势</div>
+              <div class="tab-item">新闻</div>
+              <div class="tab-item">体育</div>
+            </div>
+          </header>
+
+          <div class="p-4">
+            <h2 class="font-bold text-lg mb-4">趋势</h2>
+            <div class="space-y-5">
+              <div class="cursor-pointer hover:bg-white/5 -mx-4 px-4 py-2">
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>科技 · 趋势</span>
+                  <i class="fa-solid fa-ellipsis"></i>
+                </div>
+                <div class="font-bold text-sm mt-0.5">#SillyTavern</div>
+                <div class="text-xs text-gray-500 mt-0.5">1.2万 帖子</div>
+              </div>
+              <div class="cursor-pointer hover:bg-white/5 -mx-4 px-4 py-2">
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>编程 · 趋势</span>
+                  <i class="fa-solid fa-ellipsis"></i>
+                </div>
+                <div class="font-bold text-sm mt-0.5">TailwindCSS</div>
+                <div class="text-xs text-gray-500 mt-0.5">5,432 帖子</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 4: 私信 (Messages)
+             ======================= -->
+        <div id="view-messages" class="view-container hidden">
+          <header class="sticky-header">
+            <div class="header-row">
+              <div class="avatar-top rounded-full bg-gray-600 overflow-hidden cursor-pointer" onclick="goToProfile()">
+                <img id="messages-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Me" />
+              </div>
+              <div class="font-bold ml-4 text-lg">聊天</div>
+              <div class="flex-1"></div>
+              <div class="w-8 flex justify-end" style="color: var(--app-text-dim)">
+                <i class="fa-solid fa-gear"></i>
+              </div>
+            </div>
+          </header>
+          <div class="p-4 text-center text-gray-500 mt-10">
+            <div class="text-2xl font-bold mb-2" style="color: var(--app-text)">欢迎来到收件箱!</div>
+            <p>在 Twitter 上跟人说句悄悄话。</p>
+            <button
+              class="mt-6 bg-blue-500 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-blue-600 transition"
+            >
+              撰写私信
+            </button>
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 5: 个人主页 (Profile)
+             ======================= -->
+        <div id="view-profile" class="view-container hidden">
+          <div class="relative">
+            <div
+              class="h-32 bg-gray-700 w-full bg-cover bg-center"
+              id="profile-cover-display"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');
+              "
+            >
+              <div
+                class="absolute top-2 left-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/70 backdrop-blur-sm"
+                onclick="goBackHome()"
+              >
+                <i class="fa-solid fa-arrow-left"></i>
+              </div>
+            </div>
+
+            <div class="px-4 relative">
+              <div
+                class="w-20 h-20 rounded-full border-4 absolute -top-10 left-4 overflow-hidden cursor-pointer hover:opacity-90 transition"
+                style="border-color: var(--app-bg); background-color: var(--app-bg)"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+                  class="w-full h-full object-cover"
+                  id="profile-avatar-display"
+                />
+              </div>
+
+              <div class="flex justify-end pt-3">
+                <button
+                  class="border rounded-full px-4 py-1.5 font-bold text-sm transition hover:bg-white/10"
+                  style="border-color: var(--app-border)"
+                  onclick="openEditProfile()"
+                >
+                  编辑资料
+                </button>
+              </div>
+
+              <div class="mt-4">
+                <div class="font-bold text-xl leading-tight flex items-center gap-1">
+                  <span id="profile-nickname-display">User</span>
+                  <span id="profile-verified-display">
+                    <i class="fi fi-ss-badge-check text-blue-500 text-sm mt-1"></i>
+                  </span>
+                </div>
+                <div class="text-sm" style="color: var(--app-text-dim)">
+                  @<span id="profile-username-display">user_123456</span>
+                </div>
+
+                <div class="mt-3 text-sm leading-normal whitespace-pre-wrap" id="profile-bio-display">
+                  前端小白努力学习中！🌱 <br />这是一个由 AI 辅助生成的页面。
+                </div>
+
+                <div class="mt-3 flex gap-3 text-sm flex-wrap" style="color: var(--app-text-dim)">
+                  <span id="profile-location-wrapper" class="hidden">
+                    <i class="fa-solid fa-location-dot mr-1"></i> <span id="profile-location-display"></span>
+                  </span>
+                  <span id="profile-website-wrapper">
+                    <i class="fa-solid fa-link mr-1"></i> <span id="profile-website-display">github.com</span>
+                  </span>
+                  <span
+                    ><i class="fa-solid fa-calendar-days mr-1"></i>
+                    <span id="profile-join-date-display">2023年10月加入</span></span
+                  >
+                </div>
+
+                <div class="mt-3 flex gap-4 text-sm mb-2">
+                  <span
+                    ><span class="font-bold" style="color: var(--app-text)">102</span>
+                    <span style="color: var(--app-text-dim)">正在关注</span></span
+                  >
+                  <span
+                    ><span class="font-bold" style="color: var(--app-text)" id="profile-followers-display">8,964</span>
+                    <span style="color: var(--app-text-dim)">关注者</span></span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="tab-row sticky top-0 bg-black/80 backdrop-blur-md z-20"
+              style="background-color: var(--app-header-bg)"
+              id="profile-tabs"
+            >
+              <div class="tab-item tab-active" onclick="switchTab(this, 'profile-tab-posts')">
+                帖子
+                <div class="tab-indicator"></div>
+              </div>
+              <div class="tab-item" onclick="switchTab(this, 'profile-tab-replies')">
+                回复
+                <div class="tab-indicator"></div>
+              </div>
+              <div class="tab-item" onclick="switchTab(this, 'profile-tab-media')">
+                媒体
+                <div class="tab-indicator"></div>
+              </div>
+              <div class="tab-item" onclick="switchTab(this, 'profile-tab-likes')">
+                喜欢
+                <div class="tab-indicator"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="profile-content">
+            <div id="profile-tab-posts">
+              <!-- 此处将由 JS 动态渲染用户的帖子 -->
+              <div class="p-8 text-center text-sm" style="color: var(--app-text-dim)">暂无帖子</div>
+            </div>
+            <div id="profile-tab-replies" class="hidden p-8 text-center text-sm" style="color: var(--app-text-dim)">
+              此处应显示回复内容...
+            </div>
+            <div id="profile-tab-media" class="hidden p-2 grid grid-cols-3 gap-1">
+              <div class="aspect-square bg-gray-800"></div>
+              <div class="aspect-square bg-gray-700"></div>
+              <div class="aspect-square bg-gray-600"></div>
+            </div>
+            <div id="profile-tab-likes" class="hidden p-8 text-center text-sm" style="color: var(--app-text-dim)">
+              User 还没有喜欢任何帖子。
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 6: 编辑个人资料 (Edit Profile)
+             ======================= -->
+        <div id="view-edit-profile" class="view-container hidden z-50 bg-[var(--app-bg)]">
+          <header class="sticky-header">
+            <div class="header-row">
+              <button
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                onclick="showView('view-profile', false)"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+              <div class="font-bold text-lg ml-4 flex-1">编辑个人资料</div>
+              <button
+                class="bg-white text-black px-4 py-1.5 rounded-full font-bold text-sm hover:opacity-90 transition"
+                onclick="saveProfile()"
+              >
+                保存
+              </button>
+            </div>
+          </header>
+
+          <div class="pb-20">
+            <!-- Cover Image Edit -->
+            <div class="relative group cursor-pointer" onclick="openUrlInput('cover')">
+              <div
+                class="h-32 bg-gray-700 w-full bg-cover bg-center transition opacity-100 group-hover:opacity-80"
+                id="edit-cover-preview"
+              ></div>
+              <div
+                class="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition"
+              >
+                <i class="fa-solid fa-camera text-2xl drop-shadow-md"></i>
+              </div>
+            </div>
+
+            <div class="px-4 relative">
+              <!-- Avatar Edit -->
+              <div class="relative w-20 h-20 -top-10 cursor-pointer group" onclick="openUrlInput('avatar')">
+                <div
+                  class="w-full h-full rounded-full border-4 overflow-hidden"
+                  style="border-color: var(--app-bg); background-color: var(--app-bg)"
+                >
+                  <img
+                    id="edit-avatar-preview"
+                    class="w-full h-full object-cover transition opacity-100 group-hover:opacity-80"
+                  />
+                </div>
+                <div
+                  class="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition z-10"
+                >
+                  <i class="fa-solid fa-camera text-xl drop-shadow-md"></i>
+                </div>
+              </div>
+
+              <!-- Forms -->
+              <div class="-mt-6 space-y-4">
+                <div class="edit-input-group">
+                  <label class="edit-input-label">昵称</label>
+                  <input type="text" id="edit-nickname" class="edit-input" />
+                </div>
+
+                <div class="edit-input-group">
+                  <label class="edit-input-label">用户名 (@)</label>
+                  <input type="text" id="edit-username" class="edit-input" />
+                </div>
+
+                <div class="edit-input-group">
+                  <label class="edit-input-label">简介</label>
+                  <textarea id="edit-bio" class="edit-textarea"></textarea>
+                </div>
+
+                <div class="edit-input-group">
+                  <label class="edit-input-label">位置</label>
+                  <input type="text" id="edit-location" class="edit-input" />
+                </div>
+
+                <div class="edit-input-group">
+                  <label class="edit-input-label">网站</label>
+                  <input type="text" id="edit-website" class="edit-input" />
+                </div>
+
+                <div class="edit-input-group">
+                  <label class="edit-input-label">加入时间</label>
+                  <input type="text" id="edit-join-date" class="edit-input" placeholder="例如：2023年10月加入" />
+                </div>
+
+                <div class="edit-input-group">
+                  <label class="edit-input-label">关注者数量</label>
+                  <input type="number" id="edit-followers" class="edit-input" />
+                </div>
+
+                <div
+                  class="edit-input-group flex items-center justify-between border rounded px-3 py-2"
+                  style="border-color: var(--app-border)"
+                >
+                  <span class="text-sm">认证账号</span>
+                  <input type="checkbox" id="edit-verified" class="w-4 h-4" />
+                </div>
+
+                <div class="pt-4 border-t" style="border-color: var(--app-border)">
+                  <div class="font-bold text-sm mb-3">系统设置</div>
+                  <div class="edit-input-group">
+                    <label class="edit-input-label">自定义系统时间 (如果不填则使用真实时间)</label>
+                    <input type="datetime-local" id="edit-system-time" class="edit-input" style="color-scheme: dark" />
+                    <div class="text-xs mt-1 opacity-60">此时间将用于计算"刚刚"、"1小时前"等相对时间。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 7: 发帖 (Compose)
+             ======================= -->
+        <div id="view-compose" class="view-container hidden z-50 bg-[var(--app-bg)] flex flex-col">
+          <header class="sticky-header">
+            <div class="header-row">
+              <button
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                onclick="closeCompose()"
+              >
+                <i class="fa-solid fa-xmark text-xl"></i>
+              </button>
+              <div class="flex-1"></div>
+              <button
+                class="bg-blue-500 text-white px-4 py-1.5 rounded-full font-bold text-sm hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                id="compose-submit-btn"
+                onclick="submitTweet()"
+              >
+                发帖
+              </button>
+            </div>
+          </header>
+
+          <div class="flex-1 overflow-y-auto px-4 py-2">
+            <div class="flex gap-3">
+              <div class="shrink-0">
+                <img id="compose-user-avatar" src="" class="avatar-top rounded-full" />
+              </div>
+              <div class="flex-1 min-w-0 pt-2">
+                <textarea id="compose-text" class="compose-textarea" placeholder="有什么新鲜事？" rows="4"></textarea>
+
+                <!-- Media Previews -->
+                <div id="compose-media-preview" class="grid grid-cols-2 gap-2 mt-2 empty:hidden"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- More Options Panel -->
+          <div id="compose-more-panel" class="compose-more-panel hidden">
+            <div
+              class="flex items-center justify-between mb-3 cursor-pointer select-none"
+              onclick="toggleReplyPermission()"
+            >
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-earth-americas text-blue-400" id="reply-perm-icon"></i>
+                <span id="reply-perm-text" style="color: var(--app-accent)">所有人可以回复</span>
+              </div>
+              <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+            </div>
+
+            <div class="space-y-3 pt-3 border-t" style="border-color: var(--app-border)">
+              <div class="text-xs font-bold text-gray-500 mb-2">自定义数据 (留空则随机)</div>
+              <div class="grid grid-cols-2 gap-3">
+                <input type="text" id="compose-stat-retweets" class="edit-input" placeholder="转推: 1.5k" />
+                <input type="text" id="compose-stat-likes" class="edit-input" placeholder="点赞: 10k" />
+                <input type="text" id="compose-stat-replies" class="edit-input" placeholder="评论: 100" />
+                <input type="text" id="compose-stat-views" class="edit-input" placeholder="浏览: 1m" />
+                <input type="text" id="compose-stat-bookmarks" class="edit-input" placeholder="书签: 50" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="compose-toolbar">
+            <div class="p-2 rounded-full hover:bg-blue-500/10 cursor-pointer" onclick="openMediaInput('image')">
+              <i class="fa-regular fa-image text-xl"></i>
+            </div>
+            <div class="p-2 rounded-full hover:bg-blue-500/10 cursor-pointer" onclick="openMediaInput('video')">
+              <i class="fa-solid fa-file-video text-xl"></i>
+            </div>
+            <div class="p-2 rounded-full hover:bg-blue-500/10 cursor-not-allowed opacity-50">
+              <i class="fa-solid fa-list-ol text-xl"></i>
+            </div>
+            <div class="flex-1"></div>
+            <div class="p-2 rounded-full hover:bg-blue-500/10 cursor-pointer" onclick="toggleStatsPanel()">
+              <div
+                class="flex items-center gap-1 text-xs font-bold px-2 border rounded-full border-blue-400 h-6 whitespace-nowrap"
+              >
+                更多
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Step-based Modals for Media Input -->
+        <!-- Image Step 1 -->
+        <div id="modal-media-step1" class="modal-overlay">
+          <div class="modal-box max-w-xs">
+            <h3 class="font-bold text-lg mb-4 text-center">选择媒体类型</h3>
+            <div class="flex flex-col gap-3">
+              <button
+                class="bg-blue-500 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition"
+                onclick="nextMediaStep('normal')"
+              >
+                普通内容
+              </button>
+              <button
+                class="bg-gray-700 text-white py-3 rounded-xl font-bold hover:bg-gray-600 transition"
+                onclick="nextMediaStep('sensitive')"
+              >
+                敏感/折叠内容
+              </button>
+              <button
+                class="border border-gray-600 text-gray-400 py-2 rounded-xl text-sm font-bold mt-2 hover:bg-white/5 transition"
+                onclick="closeMediaModal()"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Step 2 (Input List) -->
+        <div id="modal-image-step2" class="modal-overlay">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg mb-2 shrink-0">添加图片</h3>
+            <div id="image-input-list" class="space-y-2 mb-4 overflow-y-auto pr-2 flex-1 min-h-0">
+              <!-- Dynamic Inputs -->
+            </div>
+            <button
+              class="text-blue-400 text-sm font-bold mb-4 flex items-center gap-1 hover:underline shrink-0"
+              onclick="addOneImageInput()"
+            >
+              <i class="fa-solid fa-plus"></i> 添加一张
+            </button>
+            <div class="flex justify-end gap-3 border-t pt-3 shrink-0" style="border-color: var(--app-border)">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border hover:bg-white/10"
+                style="border-color: var(--app-border)"
+                onclick="closeMediaModal()"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90"
+                onclick="confirmImageInput()"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Step 2 -->
+        <div id="modal-video-step2" class="modal-overlay">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg mb-2">添加视频</h3>
+            <div class="space-y-3 mb-4">
+              <div class="edit-input-group">
+                <label class="edit-input-label">视频描述</label>
+                <textarea id="video-input-desc" class="edit-textarea h-24" placeholder="视频内容描述..."></textarea>
+              </div>
+              <div class="edit-input-group">
+                <label class="edit-input-label">时长</label>
+                <input type="text" id="video-input-duration" class="edit-input" placeholder="e.g. 0:45" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-3">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border hover:bg-white/10"
+                style="border-color: var(--app-border)"
+                onclick="closeMediaModal()"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90"
+                onclick="confirmVideoInput()"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             URL Input Modal
+             ======================= -->
+        <div id="modal-input-url" class="modal-overlay">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg mb-2">输入图片链接</h3>
+            <p class="text-xs text-gray-500 mb-4">请输入图片的 URL 地址。您可以使用图床链接。</p>
+            <input type="text" id="modal-url-value" class="edit-input mb-4" placeholder="https://..." />
+            <div class="flex justify-end gap-3">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border transition hover:bg-white/10"
+                style="border-color: var(--app-border)"
+                onclick="closeUrlInput()"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90 transition"
+                onclick="confirmUrlInput()"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             悬浮按钮 (FAB)
+             ======================= -->
+        <button class="float-btn" id="home-fab" onclick="openCompose()">
+          <i class="fa-solid fa-feather-pointed"></i>
+        </button>
+
+        <!-- =======================
+             底部导航栏 (Bottom Nav)
+             ======================= -->
+        <nav class="nav-bar">
+          <div class="nav-item nav-active" data-target="view-home">
+            <i class="fa-solid fa-house"></i>
+          </div>
+          <div class="nav-item" data-target="view-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+          <div class="nav-item" data-target="view-messages">
+            <i class="fa-regular fa-envelope"></i>
+          </div>
+          <div class="nav-item" data-target="view-profile">
+            <i class="fa-regular fa-user"></i>
+          </div>
+        </nav>
+
+        <!-- Media Overlay (Lightbox) -->
+        <div id="media-viewer" class="absolute inset-0 z-[100] bg-black hidden flex flex-col">
+          <!-- Top Bar -->
+          <div class="h-12 flex items-center justify-between px-4 text-white shrink-0 relative z-10">
+            <div class="hover:bg-white/10 p-2 rounded-full cursor-pointer" onclick="closeMediaViewer()">
+              <i class="fa-solid fa-xmark text-xl"></i>
+            </div>
+            <div class="font-bold text-sm" id="media-viewer-title"></div>
+            <div class="w-8"></div>
+          </div>
+
+          <!-- Content Area -->
+          <div
+            class="flex-1 flex items-center justify-center relative overflow-hidden w-full"
+            onclick="closeMediaViewer()"
+          >
+            <!-- Prev Button -->
+            <div
+              id="media-prev-btn"
+              class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center cursor-pointer text-white z-30 hidden"
+              onclick="event.stopPropagation(); changeMedia(-1)"
+            >
+              <i class="fa-solid fa-chevron-left"></i>
+            </div>
+
+            <!-- Text Content Box -->
+            <div
+              class="w-[90%] max-w-lg bg-gray-900 border border-gray-700 rounded-xl p-8 text-center text-white relative z-20 shadow-2xl transition-all duration-300 transform"
+              onclick="event.stopPropagation()"
+            >
+              <div
+                id="media-viewer-content"
+                class="text-lg leading-relaxed max-h-[60vh] overflow-y-auto whitespace-pre-wrap"
+              ></div>
+            </div>
+
+            <!-- Next Button -->
+            <div
+              id="media-next-btn"
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center cursor-pointer text-white z-30 hidden"
+              onclick="event.stopPropagation(); changeMedia(1)"
+            >
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS 逻辑 -->
+    <script>
+      function switchTab(tabElement, contentId) {
+        const parent = $(tabElement).parent();
+        parent.find('.tab-item').removeClass('tab-active');
+        $(tabElement).addClass('tab-active');
+
+        const contentContainer = $('#' + contentId).parent();
+        contentContainer.children('div').addClass('hidden');
+        $('#' + contentId).removeClass('hidden');
+      }
+
+      function showView(targetId, updateNav = true) {
+        $('.view-container').addClass('hidden');
+        $('#' + targetId).removeClass('hidden');
+
+        if (updateNav) {
+          $('.nav-item').removeClass('nav-active');
+          $('.nav-item[data-target="' + targetId + '"]').addClass('nav-active');
+        }
+
+        if (targetId === 'view-home') {
+          $('#home-fab').removeClass('hidden-btn');
+        } else {
+          $('#home-fab').addClass('hidden-btn');
+        }
+      }
+
+      function goToProfile() {
+        showView('view-profile', true);
+      }
+      function goBackHome() {
+        showView('view-home', true);
+      }
+
+      // 核心数据源（单一数据源）
+      let coreData = {
+        tweetsById: {}, // 所有推文对象
+        feedEntries: [], // 首页条目列表（tw/re/rt/like）
+      };
+
+      // 从楼层加载的数据源，初始为空
+      let FEED_SOURCE = `
+[tw|silly1]
+[p|st_user|SillyTavern User|https://api.dicebear.com/7.x/avataaars/svg?seed=Felix|1|2025-08-20T15:21:00+08:00|3|56|12|1200|1|0|0|0|0]
+[txt|这只是文字内容。]
+[img|这是一张风景图的描述，点击可以查看大图|这是第二张图片的描述]
+[vid|这是一个关于AI功能的演示视频，非常精彩|0:45]
+[link|SillyTavern 官方文档|详细的使用指南和API参考|https://docs.sillytavern.app|https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=200]
+[poll|1|2]
+[opt|很棒|80]
+[opt|一般|20]
+[/poll]
+[qt]
+[p|original_poster|OP|https://api.dicebear.com/7.x/avataaars/svg?seed=OP|1]
+[txt|这是被引用的原推文。]
+[/qt]
+[/tw]
+[tw|video_tweet]
+[p|ai_helper|AI Assistant|https://api.dicebear.com/7.x/bottts/svg?seed=Bot|1|2025-08-20T14:00:00+08:00|1|8|5|200|0|0|1|0|0]
+[txt|来看看这个演示视频。]
+[vid|这是一个关于AI功能的演示视频，非常精彩|0:45]
+[/tw]
+[tw|sensitive_demo]
+[p|nsfw_user|隐秘角落|https://api.dicebear.com/7.x/identicon/svg?seed=Secret|0|2025-08-20T14:30:00+08:00|0|5|0|100|0|0|0|0|0]
+[txt|这是一条包含敏感内容的测试推文。]
+[img.block|这是一张敏感图片|这是另一张]
+[/tw]
+[tw|link_tweet]
+[p|tech_news|Tech Daily|https://api.dicebear.com/7.x/shapes/svg?seed=Tech|1|2025-08-20T12:00:00+08:00|50|200|10|5000|2|0|0|0|0]
+[txt|最新的科技新闻已经发布了，快来看看吧！]
+[link|2025年科技趋势报告|深度解析AI与未来的发展关系|https://example.com|https://images.unsplash.com/photo-1518770660439-4636190af475?w=200]
+[/tw]
+[tw|poll_tweet]
+[p|vote_master|Everyday Polls|https://api.dicebear.com/7.x/avataaars/svg?seed=Vote|0|2025-08-20T10:00:00+08:00|10|42|5|1000|0|0|0|0|0]
+[txt|你更喜欢哪种编程语言？]
+[poll|0|1]
+[opt|JavaScript|150]
+[opt|Python|200]
+[opt|Rust|50]
+[/poll]
+[/tw]
+[tw|full_feature]
+[p|super_user|Power User|https://api.dicebear.com/7.x/avataaars/svg?seed=Super|1|2025-08-20T09:00:00+08:00|99|999|99|9999|9|0|1|1|1]
+[txt|这是一个
+包含所有元素的推文测试！]
+[img|第一张图是关于架构设计的|第二张图是代码细节]
+[link|SillyTavern 官方文档|详细的使用指南和API参考|https://docs.sillytavern.app|https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=200]
+[poll|1|2]
+[opt|很棒|80]
+[opt|一般|20]
+[/poll]
+[qt]
+[p|original_poster|OP|https://api.dicebear.com/7.x/avataaars/svg?seed=OP|1]
+[txt|这是被引用的原推文。]
+[/qt]
+[/tw]
+[re|reply1|silly1]
+[p|reply_guy|Reply Guy|https://api.dicebear.com/7.x/avataaars/svg?seed=Reply|0|2025-08-20T16:00:00+08:00|0|1|0|10|0|0|0|0|0]
+[txt|看起来不错！]
+[img|一张表示赞同的图片描述]
+[/re]
+[rt|my_user|你|link_tweet]
+[like|my_user|你|video_tweet]
+[rt|my_user|你|non_existent_tweet_id]
+[re|reply_to_missing|non_existent_id]
+[p|my_user|你|https://api.dicebear.com/7.x/avataaars/svg?seed=User|1|2025-08-20T17:00:00+08:00|0|0|0|0|0|0|0|0]
+[txt|回复给一个不存在的推文测试。]
+[/re]
+`;
+
+      let feedList = []; // 仅用于渲染，由 coreData 派生
+      const viewHistory = [];
+      window.mediaRegistry = {}; // Store media lists for gallery
+      window.videoRegistry = {}; // Store video descriptions
+
+      // 用户资料状态
+      let currentUserProfile = {
+        nickname: 'User',
+        username: 'user_123456',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
+        cover:
+          'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+        bio: '前端小白努力学习中！🌱 \n这是一个由 AI 辅助生成的页面。',
+        location: '',
+        website: 'github.com',
+        followers: 8964,
+        verified: true,
+        joinDate: '2023年10月加入',
+        // 系统时间基准 (时间戳), null 表示使用当前真实时间
+        systemBaseTime: null,
+        // 系统时间偏移量 (用于通过真实时间计算相对时间)
+        systemTimeOffset: 0,
+      };
+
+      // 系统设置状态（存储于"推特系统设置"条目）
+      let systemSettings = {
+        lightMode: false, // 是否为日间模式
+      };
+
+      /**
+       * 渲染个人资料页面
+       */
+      function renderProfile() {
+        const p = currentUserProfile;
+
+        $('#profile-nickname-display').text(p.nickname);
+        $('#profile-username-display').text(p.username);
+        $('#profile-bio-display').text(p.bio); // text() converts \n but we stick to whitespace-pre-wrap style
+
+        // Avatar & Cover
+        $('#profile-avatar-display').attr('src', p.avatar);
+        $('#profile-cover-display').css('background-image', `url('${p.cover}')`);
+        // 同步所有页面的用户头像
+        $('#home-user-avatar').attr('src', p.avatar);
+        $('#search-user-avatar').attr('src', p.avatar);
+        $('#messages-user-avatar').attr('src', p.avatar);
+
+        // Verified
+        if (p.verified) {
+          $('#profile-verified-display').removeClass('hidden');
+        } else {
+          $('#profile-verified-display').addClass('hidden');
+        }
+
+        // Location
+        if (p.location) {
+          $('#profile-location-display').text(p.location);
+          $('#profile-location-wrapper').removeClass('hidden');
+        } else {
+          $('#profile-location-wrapper').addClass('hidden');
+        }
+
+        // Website
+        if (p.website) {
+          $('#profile-website-display').text(p.website);
+          $('#profile-website-wrapper').removeClass('hidden');
+        } else {
+          $('#profile-website-wrapper').addClass('hidden');
+        }
+
+        // Join Date
+        $('#profile-join-date-display').text(p.joinDate || '');
+
+        // Followers
+        $('#profile-followers-display').text(p.followers.toLocaleString());
+      }
+
+      // 打开编辑页面
+      function openEditProfile() {
+        const p = currentUserProfile;
+        $('#edit-nickname').val(p.nickname);
+        $('#edit-username').val(p.username);
+        $('#edit-bio').val(p.bio);
+        $('#edit-location').val(p.location);
+        $('#edit-website').val(p.website);
+        $('#edit-join-date').val(p.joinDate);
+        $('#edit-followers').val(p.followers);
+        $('#edit-verified').prop('checked', p.verified);
+
+        // Previews
+        $('#edit-avatar-preview').attr('src', p.avatar);
+        $('#edit-cover-preview').css('background-image', `url('${p.cover}')`);
+
+        // 时间设置
+        if (p.systemBaseTime) {
+          // 将时间戳转换为 datetime-local 输入框需要的格式
+          // 简化处理：确保处理时区偏移
+          const date = new Date(p.systemBaseTime);
+          const offset = date.getTimezoneOffset() * 60000;
+          const localISOTime = new Date(date - offset).toISOString().slice(0, 16);
+          $('#edit-system-time').val(localISOTime);
+        } else {
+          $('#edit-system-time').val('');
+        }
+
+        showView('view-edit-profile', false); // No nav update
+      }
+
+      // 保存资料
+      function saveProfile() {
+        const p = currentUserProfile;
+        p.nickname = $('#edit-nickname').val();
+        p.username = $('#edit-username').val();
+        p.bio = $('#edit-bio').val();
+        p.location = $('#edit-location').val();
+        p.website = $('#edit-website').val();
+        p.joinDate = $('#edit-join-date').val();
+        p.followers = parseInt($('#edit-followers').val()) || 0;
+        p.verified = $('#edit-verified').is(':checked');
+
+        // 时间逻辑处理
+        const timeVal = $('#edit-system-time').val();
+        if (timeVal) {
+          const newTime = new Date(timeVal).getTime();
+          if (!isNaN(newTime)) {
+            p.systemBaseTime = newTime;
+            // 设置相对于真实时间的偏移量，这样时间可以继续流动
+            // 用户设置的是"系统时间"参考点
+            // 这里实现偏移量：系统时间 = 真实时间 + 偏移量
+            p.systemTimeOffset = newTime - Date.now();
+          }
+        } else {
+          p.systemBaseTime = null;
+          p.systemTimeOffset = 0;
+        }
+
+        renderProfile();
+
+        // 刷新信息流以应用新的时间计算
+        renderFeed();
+
+        // 保存到世界书
+        saveProfileToWorldbook();
+        saveSettingsToWorldbook();
+
+        showView('view-profile', true);
+      }
+
+      // URL 弹窗逻辑已移至文件底部
+
+      function getSystemTime() {
+        if (currentUserProfile.systemBaseTime !== null) {
+          return Date.now() + currentUserProfile.systemTimeOffset;
+        }
+        return Date.now();
+      }
+
+      function escapeHtml(text) {
+        return String(text || '')
+          .replace(/&/g, '&' + 'amp;')
+          .replace(/</g, '&' + 'lt;')
+          .replace(/>/g, '&' + 'gt;')
+          .replace(/"/g, '&' + 'quot;')
+          .replace(/'/g, '&' + '#39;');
+      }
+
+      function formatText(text) {
+        return escapeHtml(text).replace(/\n/g, '<br />');
+      }
+
+      function formatRelativeTime(iso) {
+        const time = Date.parse(iso);
+        if (Number.isNaN(time)) return '';
+
+        // 使用系统时间
+        const now = getSystemTime();
+        const diffMs = Math.max(0, now - time);
+
+        const min = Math.floor(diffMs / 60000);
+        if (min < 1) return '刚刚';
+        if (min < 60) return `${min}m`;
+        const hour = Math.floor(min / 60);
+        if (hour < 24) return `${hour}h`;
+        const day = Math.floor(hour / 24);
+        if (day < 7) return `${day}d`;
+        const week = Math.floor(day / 7);
+        if (week < 4) return `${week}w`;
+        const month = Math.floor(day / 30);
+        if (month < 12) return `${month}mo`;
+        const year = Math.floor(day / 365);
+        return `${year}y`;
+      }
+
+      function formatDetailTime(iso) {
+        const time = Date.parse(iso);
+        if (Number.isNaN(time)) return '';
+        const date = new Date(time);
+        const timePart = new Intl.DateTimeFormat('zh-CN', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        }).format(date);
+        const datePart = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        return `${timePart} · ${datePart}`;
+      }
+
+      function formatCount(value) {
+        const text = String(value ?? '').trim();
+        if (!text) return '';
+        return escapeHtml(text);
+      }
+
+      function renderVerified(verified) {
+        return Number(verified) === 1 ? '<i class="fi fi-ss-badge-check text-blue-500 text-xs mt-0.5"></i>' : '';
+      }
+
+      function renderImages(items, options = {}) {
+        const marginClass = options.marginClass || 'mt-2';
+        const isSensitive = options.sensitive || false;
+
+        if (!items || items.length === 0) return '';
+
+        // Register items for gallery
+        const regId = 'media_' + Math.random().toString(36).substr(2, 9);
+        window.mediaRegistry[regId] = items;
+
+        const renderItem = (text, index) => `
+                <div
+                  class="hover:opacity-90 transition cursor-pointer flex items-center justify-center p-4 text-center relative overflow-hidden group ${
+                    isSensitive ? 'sensitive-blur' : ''
+                  }"
+                  onclick="event.stopPropagation(); openGalleryByRef('${regId}', ${index})"
+                  style="aspect-ratio: 16/9; background-color: var(--app-media-bg);"
+                >
+                  <div class="text-sm line-clamp-3 select-none pointer-events-none" style="color: var(--app-media-text)">
+                    ${escapeHtml(text)}
+                  </div>
+                  <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 transition pointer-events-none">
+                    <i class="fa-solid fa-expand text-3xl drop-shadow-lg" style="color: var(--app-text)"></i>
+                  </div>
+                </div>
+              `;
+
+        let contentHtml = '';
+        if (items.length === 1) {
+          contentHtml = `<div class="rounded-2xl overflow-hidden border" style="border-color: var(--app-media-border)">${renderItem(
+            items[0],
+            0,
+          )}</div>`;
+        } else {
+          const gridItems = items
+            .slice(0, 4)
+            .map((text, i) => renderItem(text, i))
+            .join('');
+          contentHtml = `<div class="grid grid-cols-2 gap-1 rounded-xl overflow-hidden border" style="border-color: var(--app-media-border)">${gridItems}</div>`;
+        }
+
+        if (isSensitive) {
+          return `
+                   <div class="${marginClass} sensitive-wrapper" onclick="event.stopPropagation(); this.classList.add('sensitive-revealed')">
+                      <div class="sensitive-overlay p-4">
+                         <div class="sensitive-stack flex flex-col w-full h-full">
+                           <div class="flex-1 flex items-center justify-center">
+                               <i class="fa-regular fa-eye-slash sensitive-eye sensitive-text-primary"></i>
+                           </div>
+                           <div class="flex-1 flex items-center justify-start">
+                               <div class="font-bold sensitive-text-primary text-sm text-left w-full">内容警告：成人内容</div>
+                           </div>
+                           <div class="flex-1 flex items-center justify-start">
+                               <div class="sensitive-text-primary text-sm text-left w-full">X已将这个帖子标记为包含成人内容。</div>
+                           </div>
+                           <div class="flex-1 flex items-center justify-end">
+                               <div class="sensitive-btn">显示</div>
+                           </div>
+                         </div>
+                      </div>
+                      ${contentHtml}
+                   </div>
+                 `;
+        }
+
+        return `<div class="${marginClass}">${contentHtml}</div>`;
+      }
+
+      function renderVideo(video, options = {}) {
+        const marginClass = options.marginClass || 'mt-2';
+        const isSensitive = options.sensitive || false;
+
+        if (!video) return '';
+
+        const regId = 'video_' + Math.random().toString(36).substr(2, 9);
+        window.videoRegistry[regId] = video.desc || '';
+
+        const contentHtml = `
+                <div class="rounded-2xl overflow-hidden border hover:opacity-90 transition cursor-pointer relative group ${
+                  isSensitive ? 'sensitive-blur' : ''
+                }" style="aspect-ratio: 16/9; background-color: var(--app-media-bg); border-color: var(--app-media-border);" onclick="event.stopPropagation(); openVideoByRef('${regId}')">
+                   <div class="absolute inset-0 flex items-center justify-center p-6 text-center select-none pointer-events-none" style="color: var(--app-media-text)">
+                     <div class="text-sm line-clamp-3">${escapeHtml(video.desc)}</div>
+                   </div>
+                   <div class="absolute bottom-2 left-2 bg-black/60 px-1.5 rounded text-xs text-white font-bold pointer-events-none">
+                     ${escapeHtml(video.duration)}
+                   </div>
+                   <div class="absolute bottom-2 right-2 bg-black/60 w-6 h-6 rounded-full flex items-center justify-center text-xs text-white pointer-events-none">
+                     <i class="fa-solid fa-volume-high"></i>
+                   </div>
+                   <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none">
+                     <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
+                       <i class="fa-solid fa-play ml-1"></i>
+                     </div>
+                   </div>
+                </div>
+              `;
+
+        if (isSensitive) {
+          return `
+                   <div class="${marginClass} sensitive-wrapper" onclick="event.stopPropagation(); this.classList.add('sensitive-revealed')">
+                      <div class="sensitive-overlay p-4">
+                         <div class="sensitive-stack flex flex-col w-full h-full">
+                           <div class="flex-1 flex items-center justify-center">
+                               <i class="fa-regular fa-eye-slash sensitive-eye sensitive-text-primary"></i>
+                           </div>
+                           <div class="flex-1 flex items-center justify-start">
+                               <div class="font-bold sensitive-text-primary text-sm text-left w-full">内容警告：成人内容</div>
+                           </div>
+                           <div class="flex-1 flex items-center justify-start">
+                               <div class="sensitive-text-primary text-sm text-left w-full">X已将这个帖子标记为包含成人内容。</div>
+                           </div>
+                           <div class="flex-1 flex items-center justify-end">
+                               <div class="sensitive-btn">显示</div>
+                           </div>
+                         </div>
+                      </div>
+                      ${contentHtml}
+                   </div>
+                 `;
+        }
+
+        return `<div class="${marginClass}">${contentHtml}</div>`;
+      }
+
+      function renderLinkCard(card, options = {}) {
+        const marginClass = options.marginClass || 'mt-2';
+        if (!card) return '';
+        let hostname = '';
+        try {
+          hostname = new URL(card.url).hostname;
+        } catch (e) {
+          hostname = card.url;
+        }
+
+        return `
+                <div class="${marginClass} rounded-2xl overflow-hidden border hover:opacity-95 transition cursor-pointer group" style="background-color: var(--app-link-bg); border-color: var(--app-media-border);" onclick="event.stopPropagation(); window.open('${escapeHtml(
+          card.url,
+        )}', '_blank')">
+                  ${
+                    card.thumb
+                      ? `<div class="aspect-[1.91/1] bg-gray-800 bg-cover bg-center" style="background-image: url('${escapeHtml(
+                          card.thumb,
+                        )}')"></div>`
+                      : ''
+                  }
+                  <div class="p-3 border-t" style="border-color: var(--app-media-border)">
+                    <div class="text-sm text-gray-500 mb-0.5 truncate">${escapeHtml(hostname)}</div>
+                    <div class="text-sm font-bold leading-tight mb-1 group-hover:underline" style="color: var(--app-text)">${escapeHtml(
+                      card.title,
+                    )}</div>
+                    <div class="text-xs text-gray-500 line-clamp-2">${escapeHtml(card.desc)}</div>
+                  </div>
+                </div>
+              `;
+      }
+
+      function renderPoll(poll, options = {}) {
+        const marginClass = options.marginClass || 'mt-2';
+        if (!poll || !poll.options) return '';
+
+        const totalVotes = poll.options.reduce((acc, curr) => acc + curr.votes, 0);
+
+        const optionHtml = poll.options
+          .map((opt, idx) => {
+            const percent = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+            const isMyVote = poll.myVote === idx + 1;
+
+            return `
+                   <div class="relative h-8 rounded mt-2 first:mt-0 flex items-center overflow-hidden cursor-pointer hover:bg-white/10" onclick="event.stopPropagation();">
+                      <div class="absolute inset-y-0 left-0 bg-blue-500/20" style="width: ${percent}%"></div>
+                      <div class="relative w-full flex justify-between px-3 text-sm font-bold items-center z-10" style="color: var(--app-poll-text)">
+                        <span class="flex items-center gap-2">
+                          ${escapeHtml(opt.text)}
+                          ${isMyVote ? '<i class="fa-solid fa-circle-check text-blue-500"></i>' : ''}
+                        </span>
+                        <span>${percent}%</span>
+                      </div>
+                   </div>
+                 `;
+          })
+          .join('');
+
+        return `
+                <div class="${marginClass}">
+                   ${optionHtml}
+                   <div class="mt-2 text-sm text-gray-500">
+                     ${formatCount(totalVotes)} 票 · ${poll.ended ? '已结束' : '剩余 12 小时'}
+                   </div>
+                </div>
+              `;
+      }
+
+      function renderQuoteBox(quote) {
+        if (!quote) return '';
+        return `
+                <div class="quote-box" onclick="event.stopPropagation();">
+                  <div class="flex items-center gap-1 text-sm mb-1">
+                    <img src="${escapeHtml(quote.author.avatar)}" class="w-4 h-4 rounded-full" />
+                    <span class="font-bold">${escapeHtml(quote.author.nickname)}</span>
+                    ${renderVerified(quote.author.verified)}
+                    <span class="text-gray-500 text-xs">@${escapeHtml(quote.author.username)}</span>
+                  </div>
+                  ${quote.text ? `<div class="text-sm mb-1">${formatText(quote.text)}</div>` : ''}
+                  ${renderImages(quote.images, { sensitive: quote.imagesSensitive })}
+                  ${renderVideo(quote.video, { sensitive: quote.videoSensitive })}
+                  ${renderLinkCard(quote.linkCard)}
+                </div>
+              `;
+      }
+
+      function parseFeedSource(raw) {
+        const lines = raw.match(/\[[\s\S]*?\]/g) || [];
+
+        const feedEntries = [];
+        const tweetsById = {};
+        let current = null;
+        let section = 'main';
+        let pollRef = null;
+
+        function flushCurrent() {
+          if (!current) return;
+          tweetsById[current.id] = current;
+          current = null;
+          section = 'main';
+          pollRef = null;
+        }
+
+        for (const rawToken of lines) {
+          const line = rawToken.trim();
+          if (!line) continue;
+          if (!line.startsWith('[') || !line.endsWith(']')) continue;
+          if (line.startsWith('[/')) {
+            const endTag = line.slice(2, -1);
+            if (endTag === 'tw' || endTag === 're') {
+              flushCurrent();
+            }
+            if (endTag === 'qt' || endTag === 'poll') {
+              section = 'main';
+              pollRef = null;
+            }
+            continue;
+          }
+
+          const body = line.slice(1, -1);
+          const parts = body.split('|');
+          const tag = parts[0];
+
+          if (tag === 'tw' || tag === 're') {
+            flushCurrent();
+            current = {
+              type: tag,
+              id: parts[1],
+              pin: parts[2] === 'pin',
+              replyTo: tag === 're' ? parts[2] : null,
+              author: null,
+              text: '',
+              images: [],
+              imagesSensitive: false,
+              video: null,
+              videoSensitive: false,
+              linkCard: null,
+              quote: null,
+              poll: null,
+              stats: {},
+              flags: {},
+            };
+            feedEntries.push({ type: 'tweet', id: current.id });
+            continue;
+          }
+
+          if (tag === 'rt' || tag === 'like') {
+            feedEntries.push({
+              type: 'status',
+              statusType: tag,
+              user: parts[1],
+              nick: parts[2],
+              targetId: parts[3],
+            });
+            continue;
+          }
+
+          if (!current) continue;
+
+          if (tag === 'qt') {
+            current.quote = {
+              author: { username: '', nickname: '', avatar: '', verified: 0 },
+              text: '',
+              images: [],
+              imagesSensitive: false,
+              video: null,
+              videoSensitive: false,
+              linkCard: null,
+            };
+            section = 'quote';
+            continue;
+          }
+
+          if (tag === 'poll') {
+            current.poll = {
+              ended: Number(parts[1]) === 1,
+              myVote: Number(parts[2]) || 0,
+              options: [],
+            };
+            section = 'poll';
+            pollRef = current.poll;
+            continue;
+          }
+
+          if (tag === 'opt' && pollRef) {
+            pollRef.options.push({ text: parts[1], votes: Number(parts[2]) || 0 });
+            continue;
+          }
+
+          if (tag === 'p') {
+            if (section === 'quote') {
+              current.quote.author = {
+                username: parts[1],
+                nickname: parts[2],
+                avatar: parts[3],
+                verified: Number(parts[4]) || 0,
+              };
+            } else {
+              current.author = {
+                username: parts[1],
+                nickname: parts[2],
+                avatar: parts[3],
+                verified: Number(parts[4]) || 0,
+                time: parts[5],
+              };
+              current.stats = {
+                retweets: parts[6] || '0',
+                likes: parts[7] || '0',
+                replies: parts[8] || '0',
+                views: parts[9] || '0',
+                bookmarks: parts[10] || '0',
+              };
+              current.flags = {
+                disableReply: Number(parts[11]) === 1,
+                likedByMe: Number(parts[12]) === 1,
+                retweetedByMe: Number(parts[13]) === 1,
+                bookmarkedByMe: Number(parts[14]) === 1,
+              };
+            }
+            continue;
+          }
+
+          if (tag === 'txt') {
+            if (section === 'quote') {
+              current.quote.text = parts.slice(1).join('|');
+            } else {
+              current.text = parts.slice(1).join('|');
+            }
+            continue;
+          }
+
+          if (tag.startsWith('img')) {
+            const items = parts.slice(1);
+            const isSensitive = tag === 'img.block';
+            if (section === 'quote') {
+              current.quote.images = items;
+              current.quote.imagesSensitive = isSensitive;
+            } else {
+              current.images = items;
+              current.imagesSensitive = isSensitive;
+            }
+            continue;
+          }
+
+          if (tag.startsWith('vid')) {
+            const vidObj = { desc: parts[1], duration: parts[2] };
+            const isSensitive = tag === 'vid.block';
+            if (section === 'quote') {
+              current.quote.video = vidObj;
+              current.quote.videoSensitive = isSensitive;
+            } else {
+              current.video = vidObj;
+              current.videoSensitive = isSensitive;
+            }
+            continue;
+          }
+
+          if (tag === 'link') {
+            const linkObj = {
+              title: parts[1],
+              desc: parts[2],
+              url: parts[3],
+              thumb: parts[4],
+            };
+            if (section === 'quote') {
+              current.quote.linkCard = linkObj;
+            } else {
+              current.linkCard = linkObj;
+            }
+            continue;
+          }
+        }
+
+        flushCurrent();
+        return { feedEntries, tweetsById };
+      }
+
+      // ========== 酒馆集成函数 ==========
+
+      /**
+       * 将 JS 数据对象序列化为 DSL 文本格式
+       * @param {object} data - 包含 tweetsById 和 feedEntries 的数据对象
+       * @returns {string} DSL 格式的文本
+       */
+      function serializeFeed(data) {
+        const { tweetsById: tweets, feedEntries: entries } = data;
+        const lines = [];
+
+        // 辅助函数：序列化单条推文内容（不含开头结尾标签）
+        function serializeTweetContent(tweet) {
+          const content = [];
+
+          // [p|...] 属性行
+          const a = tweet.author;
+          const s = tweet.stats || {};
+          const f = tweet.flags || {};
+          content.push(
+            `[p|${a.username}|${a.nickname}|${a.avatar}|${a.verified ? 1 : 0}|${a.time || ''}|${s.retweets || 0}|${
+              s.likes || 0
+            }|${s.replies || 0}|${s.views || 0}|${s.bookmarks || 0}|${f.disableReply ? 1 : 0}|${f.likedByMe ? 1 : 0}|${
+              f.retweetedByMe ? 1 : 0
+            }|${f.bookmarkedByMe ? 1 : 0}]`,
+          );
+
+          // [txt|...]
+          if (tweet.text) {
+            content.push(`[txt|${tweet.text}]`);
+          }
+
+          // [img|...] 或 [img.block|...]
+          if (tweet.images && tweet.images.length > 0) {
+            const imgTag = tweet.imagesSensitive ? 'img.block' : 'img';
+            content.push(`[${imgTag}|${tweet.images.join('|')}]`);
+          }
+
+          // [vid|...] 或 [vid.block|...]
+          if (tweet.video) {
+            const vidTag = tweet.videoSensitive ? 'vid.block' : 'vid';
+            content.push(`[${vidTag}|${tweet.video.desc}|${tweet.video.duration || ''}]`);
+          }
+
+          // [link|...]
+          if (tweet.linkCard) {
+            const lc = tweet.linkCard;
+            content.push(`[link|${lc.title}|${lc.desc}|${lc.url}|${lc.thumb || ''}]`);
+          }
+
+          // [poll]...[/poll]
+          if (tweet.poll) {
+            const p = tweet.poll;
+            content.push(`[poll|${p.ended ? 1 : 0}|${p.myVote || 0}]`);
+            for (const opt of p.options || []) {
+              content.push(`[opt|${opt.text}|${opt.votes || 0}]`);
+            }
+            content.push('[/poll]');
+          }
+
+          // [qt]...[/qt]
+          if (tweet.quote) {
+            const q = tweet.quote;
+            content.push('[qt]');
+            content.push(
+              `[p|${q.author.username}|${q.author.nickname}|${q.author.avatar}|${q.author.verified ? 1 : 0}]`,
+            );
+            if (q.text) content.push(`[txt|${q.text}]`);
+            if (q.images && q.images.length > 0) {
+              const qImgTag = q.imagesSensitive ? 'img.block' : 'img';
+              content.push(`[${qImgTag}|${q.images.join('|')}]`);
+            }
+            if (q.video) {
+              const qVidTag = q.videoSensitive ? 'vid.block' : 'vid';
+              content.push(`[${qVidTag}|${q.video.desc}|${q.video.duration || ''}]`);
+            }
+            if (q.linkCard) {
+              const qlc = q.linkCard;
+              content.push(`[link|${qlc.title}|${qlc.desc}|${qlc.url}|${qlc.thumb || ''}]`);
+            }
+            content.push('[/qt]');
+          }
+
+          return content;
+        }
+
+        // 遍历 feedEntries 生成 DSL（从旧到新，所以反转数组）
+        const reversedEntries = [...entries].reverse();
+        for (const entry of reversedEntries) {
+          if (entry.type === 'status') {
+            // [rt|...] 或 [like|...]
+            const tag = entry.statusType === 'rt' ? 'rt' : 'like';
+            lines.push(`[${tag}|${entry.user}|${entry.nick}|${entry.targetId}]`);
+          } else if (entry.type === 'tweet') {
+            const tweet = tweets[entry.id];
+            if (!tweet || !tweet.author) continue;
+
+            if (tweet.type === 're') {
+              // [re|id|parentId]...[/re]
+              lines.push(`[re|${tweet.id}|${tweet.replyTo || ''}]`);
+              lines.push(...serializeTweetContent(tweet));
+              lines.push('[/re]');
+            } else {
+              // [tw|id|pin?]...[/tw]
+              const pinSuffix = tweet.pin ? '|pin' : '';
+              lines.push(`[tw|${tweet.id}${pinSuffix}]`);
+              lines.push(...serializeTweetContent(tweet));
+              lines.push('[/tw]');
+            }
+          }
+        }
+
+        return lines.join('\n');
+      }
+
+      /**
+       * 从酒馆最新楼层读取 [home] 块中的数据
+       * @returns {string} [home] 块中的 DSL 文本，如果不存在返回空字符串
+       */
+      function loadFeedFromTavern() {
+        try {
+          // 获取最新楼层
+          const messages = getChatMessages(-1);
+          if (!messages || messages.length === 0) {
+            console.warn('[Twitter] 无法获取最新楼层');
+            return '';
+          }
+
+          const messageText = messages[0].message || '';
+
+          // 提取 [X]...[/X] 内容（不区分大小写）
+          const xMatch = messageText.match(/\[x\]([\s\S]*?)\[\/x\]/i);
+          if (!xMatch) {
+            console.warn('[Twitter] 未找到 [X] 块');
+            return '';
+          }
+
+          const xContent = xMatch[1];
+
+          // 提取 [home]...[/home] 内容（不区分大小写）
+          const homeMatch = xContent.match(/\[home\]([\s\S]*?)\[\/home\]/i);
+          if (!homeMatch) {
+            console.log('[Twitter] 未找到 [home] 块，显示空列表');
+            return '';
+          }
+
+          return homeMatch[1].trim();
+        } catch (error) {
+          console.error('[Twitter] loadFeedFromTavern 出错:', error);
+          return '';
+        }
+      }
+
+      /**
+       * 将当前数据保存到酒馆最新楼层的 [home] 块中
+       * @param {object} data - 包含 tweetsById 和 feedEntries 的数据对象
+       * @returns {Promise<boolean>} 保存是否成功
+       */
+      async function saveFeedToTavern(data) {
+        try {
+          // 获取最新楼层
+          const messages = getChatMessages(-1);
+          if (!messages || messages.length === 0) {
+            console.error('[Twitter] 无法获取最新楼层');
+            return false;
+          }
+
+          const msg = messages[0];
+          const messageText = msg.message || '';
+          const messageId = msg.message_id;
+
+          // 检查 [X] 块是否存在
+          const xMatch = messageText.match(/(\[x\])([\s\S]*?)(\[\/x\])/i);
+          if (!xMatch) {
+            console.error('[Twitter] 未找到 [X] 块，无法保存');
+            return false;
+          }
+
+          const xStart = xMatch[1]; // [X] 或 [x]
+          const xContent = xMatch[2];
+          const xEnd = xMatch[3]; // [/X] 或 [/x]
+
+          // 序列化当前数据
+          const serialized = serializeFeed(data);
+          const newHomeContent = `[home]\n${serialized}\n[/home]`;
+
+          // 替换或添加 [home] 块
+          let newXContent;
+          const homeMatch = xContent.match(/\[home\][\s\S]*?\[\/home\]/i);
+          if (homeMatch) {
+            // 替换现有的 [home] 块
+            newXContent = xContent.replace(/\[home\][\s\S]*?\[\/home\]/i, newHomeContent);
+          } else {
+            // 添加新的 [home] 块
+            newXContent = xContent + '\n' + newHomeContent;
+          }
+
+          // 重建完整消息
+          const newMessage = messageText.replace(/\[x\][\s\S]*?\[\/x\]/i, xStart + newXContent + xEnd);
+
+          // 保存到酒馆
+          await setChatMessages([{ message_id: messageId, message: newMessage }], { refresh: 'none' });
+
+          console.log('[Twitter] 数据已保存到酒馆');
+          return true;
+        } catch (error) {
+          console.error('[Twitter] saveFeedToTavern 出错:', error);
+          return false;
+        }
+      }
+
+      // ========== 酒馆集成函数结束 ==========
+
+      function buildStatusHeader(status) {
+        if (!status) return '';
+        const name = status.nick || status.user;
+        const text = status.statusType === 'rt' ? '转推了' : '喜欢了';
+        const icon = status.statusType === 'rt' ? 'fa-solid fa-retweet' : 'fa-regular fa-heart';
+        return `
+                <div class="tweet-status-header">
+                  <i class="${icon}"></i>
+                  <span>${escapeHtml(name)} ${text}</span>
+                </div>
+              `;
+      }
+
+      function buildActionGroup(tweet) {
+        const retweetClass = tweet.flags.retweetedByMe ? 'text-green-400' : '';
+        const likeClass = tweet.flags.likedByMe ? 'text-pink-500' : '';
+        const likeIconClass = tweet.flags.likedByMe ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+        const bookmarkClass = tweet.flags.bookmarkedByMe ? 'text-blue-400' : '';
+        const bookmarkIconClass = tweet.flags.bookmarkedByMe ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark';
+        return `
+                <div class="action-btn-group">
+                  <button class="action-item hover:text-blue-400">
+                    <i class="fa-regular fa-comment"></i><span class="action-count ml-0" data-count="${
+                      tweet.stats.replies
+                    }">${formatCount(tweet.stats.replies)}</span>
+                  </button>
+                  <button class="action-item hover:text-green-400 retweet-btn ${retweetClass}">
+                    <i class="fa-solid fa-retweet"></i><span class="action-count ml-0" data-count="${
+                      tweet.stats.retweets
+                    }">${formatCount(tweet.stats.retweets)}</span>
+                  </button>
+                  <button class="action-item hover:text-red-500 like-btn ${likeClass}">
+                    <i class="${likeIconClass}"></i><span class="action-count ml-0" data-count="${
+          tweet.stats.likes
+        }">${formatCount(tweet.stats.likes)}</span>
+                  </button>
+                  <button class="action-item hover:text-blue-400">
+                    <i class="fa-solid fa-chart-simple"></i><span class="action-count ml-0" data-count="${
+                      tweet.stats.views
+                    }">${formatCount(tweet.stats.views)}</span>
+                  </button>
+                  <div class="flex gap-3">
+                    <button class="action-item hover:text-blue-400 bookmark-btn ${bookmarkClass}"><i class="${bookmarkIconClass}"></i></button>
+                    <button class="action-item hover:text-blue-400"><i class="fa-solid fa-share-nodes"></i></button>
+                  </div>
+                </div>
+              `;
+      }
+
+      function renderTweetCard(tweet, status) {
+        if (!tweet || !tweet.author || tweet.missing) {
+          return `
+                  <div class="tweet-card group">
+                    ${buildStatusHeader(status)}
+                    <div class="tweet-body">
+                       <div class="shrink-0">
+                        <div class="avatar-tweet rounded-full bg-gray-700"></div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                         <div class="flex items-center gap-1 text-sm leading-tight mb-1">
+                            <span class="font-bold text-gray-500">@unknown</span>
+                         </div>
+                         <div class="p-3 rounded-xl border text-sm" style="background-color: var(--app-deleted-bg); border-color: var(--app-deleted-border); color: var(--app-deleted-text);">
+                            推文已删除/暂时无法查看
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+        }
+
+        return `
+                <div class="tweet-card group" data-tweet-id="${escapeHtml(tweet.id)}">
+                  ${buildStatusHeader(status)}
+                  <div class="tweet-body">
+                    <div class="shrink-0">
+                      <img src="${escapeHtml(
+                        tweet.author.avatar,
+                      )}" class="avatar-tweet rounded-full hover:opacity-80" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between text-sm leading-tight">
+                        <div class="flex items-center gap-1 overflow-hidden">
+                          <span class="font-bold hover:underline">${escapeHtml(tweet.author.nickname)}</span>
+                          ${renderVerified(tweet.author.verified)}
+                          <span class="truncate" style="color: var(--app-text-dim)">
+                            @${escapeHtml(tweet.author.username)} · ${formatRelativeTime(tweet.author.time)}
+                          </span>
+                        </div>
+                        <div class="text-gray-500 hover:text-blue-400 p-1 cursor-pointer shrink-0">
+                          <i class="fa-solid fa-ellipsis"></i>
+                        </div>
+                      </div>
+                      ${
+                        tweet.text
+                          ? `<div class="mt-1 text-sm leading-normal whitespace-pre-wrap">${formatText(
+                              tweet.text,
+                            )}</div>`
+                          : ''
+                      }
+                      ${renderImages(tweet.images, { sensitive: tweet.imagesSensitive })}
+                      ${renderVideo(tweet.video, { sensitive: tweet.videoSensitive })}
+                      ${renderLinkCard(tweet.linkCard)}
+                      ${renderPoll(tweet.poll)}
+                      ${renderQuoteBox(tweet.quote)}
+                      ${buildActionGroup(tweet)}
+                    </div>
+                  </div>
+                </div>
+              `;
+      }
+
+      // 渲染回复卡片（父级+当前，带连线）
+      function renderReplyCard(tweet) {
+        if (!tweet || !tweet.author || tweet.missing) {
+          return renderTweetCard(tweet, null); // Fallback to deleted card
+        }
+
+        const parent = tweet.replyTo ? coreData.tweetsById[tweet.replyTo] : null;
+
+        // 渲染父级推文（带连线和完整按钮）
+        let parentHtml = '';
+        if (parent && parent.author) {
+          parentHtml = `
+                  <div class="flex gap-3 cursor-pointer" data-tweet-id="${escapeHtml(parent.id)}">
+                    <div class="shrink-0 flex flex-col items-center avatar-col">
+                      <img src="${escapeHtml(
+                        parent.author.avatar,
+                      )}" class="avatar-tweet rounded-full hover:opacity-80 z-10" />
+                      <div class="w-0.5 grow -mb-1" style="background-color: var(--app-border)"></div>
+                    </div>
+                    <div class="flex-1 min-w-0 pb-2">
+                      <div class="flex items-center justify-between text-sm leading-tight">
+                        <div class="flex items-center gap-1 overflow-hidden">
+                          <span class="font-bold hover:underline">${escapeHtml(parent.author.nickname)}</span>
+                          ${renderVerified(parent.author.verified)}
+                          <span class="truncate" style="color: var(--app-text-dim)">
+                            @${escapeHtml(parent.author.username)} · ${formatRelativeTime(parent.author.time)}
+                          </span>
+                        </div>
+                        <div class="text-gray-500 hover:text-blue-400 p-1 cursor-pointer shrink-0">
+                          <i class="fa-solid fa-ellipsis"></i>
+                        </div>
+                      </div>
+                      ${
+                        parent.text
+                          ? `<div class="mt-1 text-sm leading-normal whitespace-pre-wrap">${formatText(
+                              parent.text,
+                            )}</div>`
+                          : ''
+                      }
+                      ${renderImages(parent.images, { sensitive: parent.imagesSensitive })}
+                      ${renderVideo(parent.video, { sensitive: parent.videoSensitive })}
+                      ${renderLinkCard(parent.linkCard)}
+                      ${renderPoll(parent.poll)}
+                      ${renderQuoteBox(parent.quote)}
+                      ${buildActionGroup(parent)}
+                    </div>
+                  </div>
+                `;
+        } else if (tweet.replyTo) {
+          // Parent missing
+          parentHtml = `
+                  <div class="flex gap-3 cursor-pointer">
+                    <div class="shrink-0 flex flex-col items-center avatar-col">
+                      <div class="avatar-tweet rounded-full bg-gray-700 z-10"></div>
+                      <div class="w-0.5 grow -mb-1" style="background-color: var(--app-border)"></div>
+                    </div>
+                    <div class="flex-1 min-w-0 pb-2">
+                        <div class="flex items-center gap-1 text-sm leading-tight mb-1">
+                            <span class="font-bold text-gray-500">@unknown</span>
+                         </div>
+                         <div class="p-3 rounded-xl border text-sm" style="background-color: var(--app-deleted-bg); border-color: var(--app-deleted-border); color: var(--app-deleted-text);">
+                            推文已删除/暂时无法查看
+                         </div>
+                    </div>
+                  </div>
+                `;
+        }
+
+        // 生成子级的回复@提示
+        const replyLine =
+          parent && parent.author
+            ? `<div class="text-sm" style="color: var(--app-text-dim)">回复 <span class="text-blue-400">@${escapeHtml(
+                parent.author.username,
+              )}</span></div>`
+            : '';
+
+        // 渲染当前回复
+        return `
+                <div class="tweet-card group">
+                  <div class="flex flex-col relative">
+                    ${parentHtml}
+                    <div class="flex gap-3 cursor-pointer" data-tweet-id="${escapeHtml(tweet.id)}">
+                      <div class="shrink-0">
+                        <img src="${escapeHtml(
+                          tweet.author.avatar,
+                        )}" class="avatar-tweet rounded-full hover:opacity-80" />
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between text-sm leading-tight">
+                          <div class="flex items-center gap-1 overflow-hidden">
+                            <span class="font-bold hover:underline">${escapeHtml(tweet.author.nickname)}</span>
+                            ${renderVerified(tweet.author.verified)}
+                            <span class="truncate" style="color: var(--app-text-dim)">
+                              @${escapeHtml(tweet.author.username)} · ${formatRelativeTime(tweet.author.time)}
+                            </span>
+                          </div>
+                          <div class="text-gray-500 hover:text-blue-400 p-1 cursor-pointer shrink-0">
+                            <i class="fa-solid fa-ellipsis"></i>
+                          </div>
+                        </div>
+                        ${replyLine}
+                        ${
+                          tweet.text
+                            ? `<div class="mt-1 text-sm leading-normal whitespace-pre-wrap">${formatText(
+                                tweet.text,
+                              )}</div>`
+                            : ''
+                        }
+                        ${renderImages(tweet.images, { sensitive: tweet.imagesSensitive })}
+                        ${renderVideo(tweet.video, { sensitive: tweet.videoSensitive })}
+                        ${renderLinkCard(tweet.linkCard)}
+                        ${renderPoll(tweet.poll)}
+                        ${renderQuoteBox(tweet.quote)}
+                        ${buildActionGroup(tweet)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+      }
+
+      // 构建首页列表（按时间排序）
+      function buildFeedList(data) {
+        const { tweetsById, feedEntries } = data;
+        const list = [];
+        // Removed processed Set. We allow duplicates if they are distinct actions (RT vs Original).
+
+        for (let i = 0; i < feedEntries.length; i += 1) {
+          const entry = feedEntries[i];
+
+          if (entry.type === 'status') {
+            // Look up target
+            const tweet = coreData.tweetsById[entry.targetId];
+            if (tweet) {
+              list.push({
+                type: 'status',
+                statusType: entry.statusType,
+                user: entry.user,
+                nick: entry.nick,
+                tweet: tweet,
+                time: Date.parse(tweet.author.time) || 0, // Using tweet time
+              });
+            } else {
+              // Target tweet missing, create placeholder
+              list.push({
+                type: 'status',
+                statusType: entry.statusType,
+                user: entry.user,
+                nick: entry.nick,
+                tweet: { missing: true, id: entry.targetId },
+                time: 0, // No time available, will sink to bottom or use 0
+              });
+            }
+            continue;
+          }
+
+          if (entry.type === 'tweet') {
+            const tweet = coreData.tweetsById[entry.id];
+            if (tweet && tweet.author) {
+              // Ensure parsed correctly
+              list.push({
+                type: tweet.type,
+                tweet: tweet,
+                time: Date.parse(tweet.author.time) || 0,
+              });
+            }
+          }
+        }
+
+        // 按时间从新到旧排序
+        list.sort((a, b) => b.time - a.time);
+        return list;
+      }
+
+      // 渲染首页列表
+      function renderFeed() {
+        const html = feedList.map(item => {
+          if (item.type === 'status') {
+            // rt 或 like
+            return renderTweetCard(item.tweet, {
+              statusType: item.statusType,
+              user: item.user,
+              nick: item.nick,
+            });
+          }
+          if (item.type === 're') {
+            // 回复推文，显示父级+当前
+            return renderReplyCard(item.tweet);
+          }
+          // 普通推文 tw
+          return renderTweetCard(item.tweet, null);
+        });
+        $('#feed-recommend-list').html(html.join(''));
+      }
+
+      // 获取祖先链（从最顶层到当前的父级）
+      function getAncestorChain(tweet) {
+        const chain = [];
+        let cursor = tweet;
+        while (cursor && cursor.replyTo) {
+          const parent = coreData.tweetsById[cursor.replyTo];
+          if (parent) {
+            chain.unshift(parent);
+            cursor = parent;
+          } else {
+            // Parent missing, add placeholder and stop
+            chain.unshift({ missing: true, id: cursor.replyTo });
+            break; // Cannot go further up
+          }
+        }
+        return chain;
+      }
+
+      // 获取某条推文的所有回复
+      function getReplies(tweetId) {
+        const replies = [];
+        for (const id in coreData.tweetsById) {
+          const t = coreData.tweetsById[id];
+          if (t.replyTo === tweetId) {
+            replies.push(t);
+          }
+        }
+        // 按时间从旧到新排序
+        replies.sort((a, b) => {
+          const ta = Date.parse(a.author?.time) || 0;
+          const tb = Date.parse(b.author?.time) || 0;
+          return ta - tb;
+        });
+        return replies;
+      }
+
+      // 渲染祖先链中的一条推文（带连线，可点击，完整按钮）
+      function renderAncestorRow(tweet, hasLineDown = true) {
+        if (!tweet || !tweet.author) {
+          return `
+                  <div class="flex gap-3">
+                    <div class="shrink-0 flex flex-col items-center avatar-col">
+                      <div class="avatar-tweet rounded-full bg-gray-700"></div>
+                      ${
+                        hasLineDown
+                          ? '<div class="w-0.5 grow -mb-1" style="background-color: var(--app-border)"></div>'
+                          : ''
+                      }
+                    </div>
+                    <div class="flex-1 pb-2">
+                       <div class="flex items-center gap-1 text-sm leading-tight mb-1">
+                            <span class="font-bold text-gray-500">@unknown</span>
+                         </div>
+                         <div class="p-3 rounded-xl border text-sm" style="background-color: var(--app-deleted-bg); border-color: var(--app-deleted-border); color: var(--app-deleted-text);">
+                            推文已删除/暂时无法查看
+                         </div>
+                    </div>
+                  </div>
+                `;
+        }
+
+        return `
+                <div class="flex gap-3 cursor-pointer ancestor-row" data-tweet-id="${escapeHtml(tweet.id)}">
+                  <div class="shrink-0 flex flex-col items-center avatar-col">
+                    <img src="${escapeHtml(
+                      tweet.author.avatar,
+                    )}" class="avatar-tweet rounded-full hover:opacity-80 z-10" />
+                    ${
+                      hasLineDown
+                        ? '<div class="w-0.5 grow -mb-1" style="background-color: var(--app-border)"></div>'
+                        : ''
+                    }
+                  </div>
+                  <div class="flex-1 min-w-0 pb-2">
+                    <div class="flex items-center justify-between text-sm leading-tight">
+                      <div class="flex items-center gap-1 overflow-hidden">
+                        <span class="font-bold hover:underline">${escapeHtml(tweet.author.nickname)}</span>
+                        ${renderVerified(tweet.author.verified)}
+                        <span class="truncate" style="color: var(--app-text-dim)">
+                          @${escapeHtml(tweet.author.username)} · ${formatRelativeTime(tweet.author.time)}
+                        </span>
+                      </div>
+                      <div class="text-gray-500 hover:text-blue-400 p-1 cursor-pointer shrink-0">
+                        <i class="fa-solid fa-ellipsis"></i>
+                      </div>
+                    </div>
+                    ${
+                      tweet.text
+                        ? `<div class="mt-1 text-sm leading-normal whitespace-pre-wrap">${formatText(tweet.text)}</div>`
+                        : ''
+                    }
+                    ${renderImages(tweet.images, { sensitive: tweet.imagesSensitive })}
+                    ${renderVideo(tweet.video, { sensitive: tweet.videoSensitive })}
+                    ${renderLinkCard(tweet.linkCard)}
+                    ${renderPoll(tweet.poll)}
+                    ${renderQuoteBox(tweet.quote)}
+                    ${buildActionGroup(tweet)}
+                  </div>
+                </div>
+              `;
+      }
+
+      // 渲染评论区的一条回复（可点击进入详情）
+      function renderReplyRow(tweet) {
+        if (!tweet || !tweet.author) {
+          return `
+                  <div class="tweet-card">
+                    <div class="tweet-body">
+                      <div class="flex-1">
+                        <div class="text-sm leading-normal">推文已删除/暂时无法查看</div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+        }
+
+        // 获取父级用户名用于显示"回复 @xxx"
+        const parent = tweet.replyTo ? coreData.tweetsById[tweet.replyTo] : null;
+        const replyLine =
+          parent && parent.author
+            ? `<div class="text-sm" style="color: var(--app-text-dim)">回复 <span class="text-blue-400">@${escapeHtml(
+                parent.author.username,
+              )}</span></div>`
+            : '';
+
+        return `
+                <div class="tweet-card cursor-pointer reply-row" data-tweet-id="${escapeHtml(tweet.id)}">
+                  <div class="tweet-body">
+                    <div class="shrink-0">
+                      <img src="${escapeHtml(
+                        tweet.author.avatar,
+                      )}" class="avatar-tweet rounded-full hover:opacity-80" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between text-sm leading-tight">
+                        <div class="flex items-center gap-1 overflow-hidden">
+                          <span class="font-bold hover:underline">${escapeHtml(tweet.author.nickname)}</span>
+                          ${renderVerified(tweet.author.verified)}
+                          <span class="truncate" style="color: var(--app-text-dim)">
+                            @${escapeHtml(tweet.author.username)} · ${formatRelativeTime(tweet.author.time)}
+                          </span>
+                        </div>
+                        <div class="text-gray-500 hover:text-blue-400 p-1 cursor-pointer shrink-0">
+                          <i class="fa-solid fa-ellipsis"></i>
+                        </div>
+                      </div>
+                      ${replyLine}
+                      ${
+                        tweet.text
+                          ? `<div class="mt-1 text-sm leading-normal whitespace-pre-wrap">${formatText(
+                              tweet.text,
+                            )}</div>`
+                          : ''
+                      }
+                      ${renderQuoteBox(tweet.quote)}
+                      ${renderImages(tweet.images, { sensitive: tweet.imagesSensitive })}
+                      ${buildActionGroup(tweet)}
+                    </div>
+                  </div>
+                </div>
+              `;
+      }
+
+      // 渲染详情页
+      function renderDetail(tweet) {
+        // 清空容器
+        $('#detail-ancestors').empty();
+        $('#detail-main').empty();
+        $('#detail-replies').empty();
+
+        if (!tweet || !tweet.author) {
+          $('#detail-ancestors').hide();
+          $('#detail-main').html(`
+                  <div class="p-6 text-center text-sm" style="color: var(--app-text-dim)">推文已删除/暂时无法查看</div>
+                `);
+          $('#detail-replies-section').hide();
+          return;
+        }
+
+        // 渲染祖先链
+        const ancestors = getAncestorChain(tweet);
+        if (ancestors.length > 0) {
+          const ancestorHtml = ancestors.map((a, i) => renderAncestorRow(a, true)).join('');
+          $('#detail-ancestors').html(ancestorHtml).show();
+          // 有祖先链时，main不需要额外顶部间距
+          $('#detail-main').removeClass('pt-4');
+        } else {
+          $('#detail-ancestors').hide();
+          // 无祖先链时，给main添加顶部间距
+          $('#detail-main').addClass('pt-4');
+        }
+
+        // 渲染主推文详情
+        const detailTime = formatDetailTime(tweet.author.time);
+        const detailViews = formatCount(tweet.stats.views);
+
+        // 如果有父级，显示"回复 @xxx"（紧贴头像行，与文字适当间隔）
+        const parent = tweet.replyTo ? coreData.tweetsById[tweet.replyTo] : null;
+        let replyLine = '';
+        if (parent && parent.author) {
+          replyLine = `<div class="text-sm mt-2" style="color: var(--app-text-dim)">回复 <span class="text-blue-400">@${escapeHtml(
+            parent.author.username,
+          )}</span></div>`;
+        } else if (tweet.replyTo) {
+          replyLine = `<div class="text-sm mt-2" style="color: var(--app-text-dim)">回复 <span class="text-gray-500">@unknown</span></div>`;
+        }
+
+        const detailHtml = `
+                <div class="flex gap-3">
+                  <img src="${escapeHtml(tweet.author.avatar)}" class="avatar-tweet rounded-full" alt="${escapeHtml(
+          tweet.author.nickname,
+        )}" />
+                  <div class="flex-1">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <div class="flex items-center gap-1 text-sm">
+                          <span class="font-bold">${escapeHtml(tweet.author.nickname)}</span>
+                          ${renderVerified(tweet.author.verified)}
+                        </div>
+                        <div class="text-sm" style="color: var(--app-text-dim)">@${escapeHtml(
+                          tweet.author.username,
+                        )}</div>
+                      </div>
+                      <button class="text-gray-500 hover:text-blue-400 p-1 cursor-pointer action-btn-group">
+                        <i class="fa-solid fa-ellipsis"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                ${replyLine}
+                ${tweet.text ? `<div class="mt-2 text-base leading-relaxed">${formatText(tweet.text)}</div>` : ''}
+                ${renderImages(tweet.images, { marginClass: 'mt-3', sensitive: tweet.imagesSensitive })}
+                ${renderVideo(tweet.video, { marginClass: 'mt-3', sensitive: tweet.videoSensitive })}
+                ${renderLinkCard(tweet.linkCard, { marginClass: 'mt-3' })}
+                ${renderPoll(tweet.poll, { marginClass: 'mt-3' })}
+                ${tweet.quote ? renderQuoteBox(tweet.quote) : ''}
+
+                <div class="mt-3 text-xs flex items-center gap-2" style="color: var(--app-text-dim)">
+                  <span>${escapeHtml(detailTime)}</span>
+                  <span>·</span>
+                  <span><span class="font-bold" style="color: var(--app-text)">${escapeHtml(
+                    detailViews,
+                  )}</span> 次查看</span>
+                </div>
+
+                <div
+                  class="mt-3 py-3 border-t border-b text-xs flex flex-wrap gap-4"
+                  style="border-color: var(--app-border); color: var(--app-text-dim)"
+                >
+                  <span><span class="font-bold" style="color: var(--app-text)">${formatCount(
+                    tweet.stats.retweets,
+                  )}</span> 转帖</span>
+                  <span><span class="font-bold" style="color: var(--app-text)">${formatCount(
+                    tweet.stats.likes,
+                  )}</span> 喜欢</span>
+                  <span><span class="font-bold" style="color: var(--app-text)">${formatCount(
+                    tweet.stats.bookmarks,
+                  )}</span> 书签</span>
+                </div>
+
+                <div class="mt-2 flex items-center justify-between text-lg" style="color: var(--app-text-dim)">
+                  <button class="action-item hover:text-blue-400"><i class="fa-regular fa-comment"></i></button>
+                  <button class="action-item hover:text-green-400"><i class="fa-solid fa-retweet"></i></button>
+                  <button class="action-item hover:text-red-500 like-btn"><i class="fa-regular fa-heart"></i></button>
+                  <button class="action-item hover:text-blue-400"><i class="fa-regular fa-bookmark"></i></button>
+                  <button class="action-item hover:text-blue-400"><i class="fa-solid fa-share-nodes"></i></button>
+                </div>
+
+                <div class="mt-3 border-t" style="border-color: var(--app-border)"></div>
+              `;
+
+        $('#detail-main').html(detailHtml);
+
+        // 渲染评论区
+        const replies = getReplies(tweet.id);
+        if (replies.length > 0) {
+          const repliesHtml = replies.map(r => renderReplyRow(r)).join('');
+          $('#detail-replies').html(repliesHtml);
+          $('#detail-replies-section').show();
+        } else {
+          $('#detail-replies').html('<div class="px-4 pb-6 text-sm" style="color: var(--app-text-dim)">暂无回复</div>');
+          $('#detail-replies-section').show();
+        }
+      }
+
+      // 跳转到详情页（带历史栈）
+      function goToDetail(tweetId) {
+        const tweet = coreData.tweetsById[tweetId];
+        viewHistory.push({ type: 'detail', tweetId: tweetId });
+        renderDetail(tweet);
+        showView('view-detail', false);
+        // 滚动到顶部
+        $('#view-detail').scrollTop(0);
+      }
+
+      // 返回上一级
+      function goBack() {
+        viewHistory.pop(); // 弹出当前
+        if (viewHistory.length === 0) {
+          // 栈空，返回首页
+          showView('view-home', true);
+        } else {
+          const prev = viewHistory[viewHistory.length - 1];
+          if (prev.type === 'detail') {
+            renderDetail(coreData.tweetsById[prev.tweetId]);
+            showView('view-detail', false);
+            $('#view-detail').scrollTop(0);
+          } else {
+            showView('view-home', true);
+          }
+        }
+      }
+
+      // ========== 世界书集成：个人资料持久化 ==========
+
+      /**
+       * 序列化个人资料为条目内容格式
+       * @returns {string} 条目内容
+       */
+      function serializeProfileToContent() {
+        const p = currentUserProfile;
+        // 使用 YAML 格式存储，便于阅读和编辑
+        const profileYaml = `昵称: ${p.nickname || ''}
+用户名: ${p.username || ''}
+简介: |
+  ${(p.bio || '').split('\n').join('\n  ')}
+位置: ${p.location || ''}
+网站: ${p.website || ''}
+加入时间: ${p.joinDate || ''}
+关注者数量: ${p.followers || 0}
+认证: ${p.verified ? 'true' : 'false'}
+系统时间: ${p.systemBaseTime ? new Date(p.systemBaseTime).toISOString() : ''}`;
+
+        return `此为用户的个人主页信息：
+<profile>
+${profileYaml}
+</profile>`;
+      }
+
+      /**
+       * 从条目内容解析个人资料
+       * @param {string} content 条目内容
+       * @returns {object|null} 解析后的资料对象，解析失败返回 null
+       */
+      function parseProfileFromContent(content) {
+        if (!content) return null;
+
+        // 提取 <profile> 块
+        const match = content.match(/<profile>([\s\S]*?)<\/profile>/);
+        if (!match) return null;
+
+        const yaml = match[1].trim();
+        const profile = {};
+
+        // 简单的 YAML 解析（针对我们的格式）
+        const lines = yaml.split('\n');
+        let currentKey = null;
+        let inMultiline = false;
+        let multilineValue = [];
+
+        for (const line of lines) {
+          if (inMultiline) {
+            if (line.startsWith('  ')) {
+              multilineValue.push(line.slice(2));
+            } else {
+              profile[currentKey] = multilineValue.join('\n');
+              inMultiline = false;
+              multilineValue = [];
+            }
+          }
+
+          if (!inMultiline) {
+            const colonIdx = line.indexOf(':');
+            if (colonIdx > 0) {
+              currentKey = line.slice(0, colonIdx).trim();
+              const value = line.slice(colonIdx + 1).trim();
+
+              if (value === '|') {
+                inMultiline = true;
+                multilineValue = [];
+              } else {
+                profile[currentKey] = value;
+              }
+            }
+          }
+        }
+
+        // 处理最后一个多行值
+        if (inMultiline && currentKey) {
+          profile[currentKey] = multilineValue.join('\n');
+        }
+
+        return {
+          nickname: profile['昵称'] || '',
+          username: profile['用户名'] || '',
+          bio: profile['简介'] || '',
+          location: profile['位置'] || '',
+          website: profile['网站'] || '',
+          joinDate: profile['加入时间'] || '',
+          followers: parseInt(profile['关注者数量']) || 0,
+          verified: profile['认证'] === 'true',
+          systemBaseTime: profile['系统时间'] ? new Date(profile['系统时间']).getTime() : null,
+          systemTimeOffset: profile['系统时间'] ? new Date(profile['系统时间']).getTime() - Date.now() : 0,
+        };
+      }
+
+      /**
+       * 序列化系统设置为条目内容格式
+       * @returns {string} 条目内容
+       */
+      function serializeSettingsToContent() {
+        const p = currentUserProfile;
+        const s = systemSettings;
+
+        return `此为推特系统设置：
+<settings>
+头像URL: ${p.avatar || ''}
+封面URL: ${p.cover || ''}
+日间模式: ${s.lightMode ? 'true' : 'false'}
+</settings>`;
+      }
+
+      /**
+       * 从条目内容解析系统设置
+       * @param {string} content 条目内容
+       * @returns {object|null} 解析后的设置对象
+       */
+      function parseSettingsFromContent(content) {
+        if (!content) return null;
+
+        const match = content.match(/<settings>([\s\S]*?)<\/settings>/);
+        if (!match) return null;
+
+        const lines = match[1].trim().split('\n');
+        const settings = {};
+
+        for (const line of lines) {
+          const colonIdx = line.indexOf(':');
+          if (colonIdx > 0) {
+            const key = line.slice(0, colonIdx).trim();
+            const value = line.slice(colonIdx + 1).trim();
+            settings[key] = value;
+          }
+        }
+
+        return {
+          avatar: settings['头像URL'] || '',
+          cover: settings['封面URL'] || '',
+          lightMode: settings['日间模式'] === 'true',
+        };
+      }
+
+      /**
+       * 从角色世界书加载个人资料和系统设置
+       * 如果条目不存在则创建
+       */
+      async function loadFromWorldbook() {
+        try {
+          // 获取角色绑定的世界书
+          const charWorldbooks = getCharWorldbookNames('current');
+          const worldbookName = charWorldbooks.primary;
+
+          if (!worldbookName) {
+            console.warn('[Twitter] 当前角色没有绑定世界书，跳过持久化');
+            return;
+          }
+
+          console.log('[Twitter] 正在从世界书加载:', worldbookName);
+
+          // 获取世界书内容
+          let worldbook;
+          try {
+            worldbook = await getWorldbook(worldbookName);
+          } catch (e) {
+            console.error('[Twitter] 获取世界书失败:', e);
+            return;
+          }
+
+          // 查找"推特个人主页"条目
+          let profileEntry = worldbook.find(entry => entry.name === '推特个人主页');
+          if (profileEntry) {
+            // 解析并应用
+            const parsed = parseProfileFromContent(profileEntry.content);
+            if (parsed) {
+              Object.assign(currentUserProfile, parsed);
+              console.log('[Twitter] 已加载个人资料');
+            }
+          } else {
+            // 创建新条目
+            console.log('[Twitter] 创建"推特个人主页"条目');
+            await createWorldbookEntries(worldbookName, [
+              {
+                name: '推特个人主页',
+                enabled: true,
+                strategy: {
+                  type: 'constant',
+                  keys: [],
+                  keys_secondary: { logic: 'and_any', keys: [] },
+                  scan_depth: 'same_as_global',
+                },
+                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 100 },
+                content: serializeProfileToContent(),
+                probability: 100,
+                recursion: { prevent_incoming: false, prevent_outgoing: true, delay_until: null },
+                effect: { sticky: null, cooldown: null, delay: null },
+              },
+            ]);
+          }
+
+          // 查找"推特系统设置"条目
+          let settingsEntry = worldbook.find(entry => entry.name === '推特系统设置');
+          if (settingsEntry) {
+            // 解析并应用
+            const parsed = parseSettingsFromContent(settingsEntry.content);
+            if (parsed) {
+              currentUserProfile.avatar = parsed.avatar || currentUserProfile.avatar;
+              currentUserProfile.cover = parsed.cover || currentUserProfile.cover;
+              systemSettings.lightMode = parsed.lightMode;
+              console.log('[Twitter] 已加载系统设置');
+            }
+          } else {
+            // 创建新条目（默认禁用）
+            console.log('[Twitter] 创建"推特系统设置"条目');
+            await createWorldbookEntries(worldbookName, [
+              {
+                name: '推特系统设置',
+                enabled: false, // 默认禁用
+                strategy: {
+                  type: 'constant',
+                  keys: [],
+                  keys_secondary: { logic: 'and_any', keys: [] },
+                  scan_depth: 'same_as_global',
+                },
+                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 101 },
+                content: serializeSettingsToContent(),
+                probability: 100,
+                recursion: { prevent_incoming: false, prevent_outgoing: true, delay_until: null },
+                effect: { sticky: null, cooldown: null, delay: null },
+              },
+            ]);
+          }
+        } catch (error) {
+          console.error('[Twitter] loadFromWorldbook 出错:', error);
+        }
+      }
+
+      /**
+       * 保存个人资料到世界书
+       */
+      async function saveProfileToWorldbook() {
+        try {
+          const charWorldbooks = getCharWorldbookNames('current');
+          const worldbookName = charWorldbooks.primary;
+
+          if (!worldbookName) {
+            console.warn('[Twitter] 没有绑定世界书，无法保存');
+            return;
+          }
+
+          await updateWorldbookWith(worldbookName, worldbook => {
+            return worldbook.map(entry => {
+              if (entry.name === '推特个人主页') {
+                return { ...entry, content: serializeProfileToContent() };
+              }
+              return entry;
+            });
+          });
+
+          console.log('[Twitter] 个人资料已保存到世界书');
+        } catch (error) {
+          console.error('[Twitter] saveProfileToWorldbook 出错:', error);
+        }
+      }
+
+      /**
+       * 保存系统设置到世界书
+       */
+      async function saveSettingsToWorldbook() {
+        try {
+          const charWorldbooks = getCharWorldbookNames('current');
+          const worldbookName = charWorldbooks.primary;
+
+          if (!worldbookName) {
+            console.warn('[Twitter] 没有绑定世界书，无法保存');
+            return;
+          }
+
+          await updateWorldbookWith(worldbookName, worldbook => {
+            return worldbook.map(entry => {
+              if (entry.name === '推特系统设置') {
+                return { ...entry, content: serializeSettingsToContent() };
+              }
+              return entry;
+            });
+          });
+
+          console.log('[Twitter] 系统设置已保存到世界书');
+        } catch (error) {
+          console.error('[Twitter] saveSettingsToWorldbook 出错:', error);
+        }
+      }
+
+      // ========== 世界书集成结束 ==========
+
+      $(document).ready(async function () {
+        // 1. 从楼层加载推文数据
+        const tavernFeed = loadFeedFromTavern();
+        if (tavernFeed && tavernFeed.trim()) {
+          FEED_SOURCE = tavernFeed;
+        }
+        const parsedFeed = parseFeedSource(FEED_SOURCE);
+        coreData.tweetsById = parsedFeed.tweetsById;
+        coreData.feedEntries = parsedFeed.feedEntries;
+        feedList = buildFeedList(coreData);
+
+        // 2. 加载世界书中的个人资料和系统设置
+        await loadFromWorldbook();
+
+        // 3. 应用日间模式设置
+        if (systemSettings.lightMode) {
+          $('#app-box').addClass('light-mode');
+          $('#theme-btn').removeClass('fa-moon').addClass('fa-sun');
+        }
+
+        // 4. 渲染页面
+        renderProfile(); // 初始化个人资料页
+        renderFeed();
+
+        // 底部导航切换
+        $('.nav-item').click(function () {
+          const targetId = $(this).data('target');
+          viewHistory.length = 0; // 清空历史栈
+          showView(targetId, true);
+        });
+
+        // 首页推文卡片点击
+        $('#home-feed-recommend').on('click', '[data-tweet-id]', function (e) {
+          if ($(e.target).closest('.action-btn-group').length) return;
+          const tweetId = $(this).data('tweetId');
+          if (tweetId) {
+            goToDetail(tweetId);
+          }
+        });
+
+        // 详情页祖先链点击
+        $('#detail-ancestors').on('click', '.ancestor-row', function (e) {
+          const tweetId = $(this).data('tweetId');
+          if (tweetId) {
+            goToDetail(tweetId);
+          }
+        });
+
+        // 详情页评论区点击
+        $('#detail-replies').on('click', '.reply-row', function (e) {
+          if ($(e.target).closest('.action-btn-group').length) return;
+          const tweetId = $(this).data('tweetId');
+          if (tweetId) {
+            goToDetail(tweetId);
+          }
+        });
+
+        // 返回按钮
+        $('#detail-back-btn').on('click', function () {
+          goBack();
+        });
+
+        // 刷新按钮动画
+        $('#refresh-btn').click(function () {
+          const btn = $(this);
+          btn.removeClass('fa-spin');
+          void btn[0].offsetWidth;
+          btn.addClass('fa-spin');
+          setTimeout(() => btn.removeClass('fa-spin'), 1000);
+        });
+
+        // 日夜模式切换
+        $('#theme-btn').click(function () {
+          const appBox = $('#app-box');
+          const icon = $(this);
+          if (appBox.hasClass('light-mode')) {
+            appBox.removeClass('light-mode');
+            icon.removeClass('fa-sun').addClass('fa-moon');
+            systemSettings.lightMode = false;
+          } else {
+            appBox.addClass('light-mode');
+            icon.removeClass('fa-moon').addClass('fa-sun');
+            systemSettings.lightMode = true;
+          }
+          // 保存到世界书
+          saveSettingsToWorldbook();
+        });
+
+        // 转推样式切换（不改数字）
+        $('.app-container').on('click', '.retweet-btn', function (e) {
+          e.stopPropagation();
+          $(this).toggleClass('text-green-400');
+        });
+
+        // 书签样式切换（不改数字）
+        $('.app-container').on('click', '.bookmark-btn', function (e) {
+          e.stopPropagation();
+          const icon = $(this).find('i');
+          if (icon.hasClass('fa-regular')) {
+            icon.removeClass('fa-regular').addClass('fa-solid');
+            $(this).addClass('text-blue-400');
+          } else {
+            icon.removeClass('fa-solid').addClass('fa-regular');
+            $(this).removeClass('text-blue-400');
+          }
+        });
+
+        // 点赞样式切换 + 数据层操作
+        $('.app-container').on('click', '.like-btn', async function (e) {
+          e.stopPropagation();
+
+          // 找到这条推文的 ID
+          const tweetCard = $(this).closest('[data-tweet-id]');
+          const tweetId = tweetCard.data('tweetId');
+          if (!tweetId) return;
+
+          const tweet = coreData.tweetsById[tweetId];
+          if (!tweet) return;
+
+          const icon = $(this).find('i');
+          const isLiked = icon.hasClass('fa-solid');
+
+          if (isLiked) {
+            // 取消点赞
+            icon.removeClass('fa-solid text-pink-500').addClass('fa-regular');
+            $(this).removeClass('text-pink-500');
+
+            // 修改 flags
+            tweet.flags.likedByMe = 0;
+
+            // 从 feedEntries 里移除这条点赞记录
+            const idx = coreData.feedEntries.findIndex(
+              item =>
+                item.type === 'status' &&
+                item.statusType === 'like' &&
+                item.user === currentUserProfile.username &&
+                item.targetId === tweetId,
+            );
+            if (idx !== -1) {
+              coreData.feedEntries.splice(idx, 1);
+            }
+          } else {
+            // 点赞
+            icon.removeClass('fa-regular').addClass('fa-solid text-pink-500');
+            $(this).addClass('text-pink-500');
+            icon.addClass('fa-bounce');
+            setTimeout(() => icon.removeClass('fa-bounce'), 500);
+
+            // 修改 flags
+            tweet.flags.likedByMe = 1;
+
+            // 添加点赞条目到 feedEntries
+            coreData.feedEntries.unshift({
+              type: 'status',
+              statusType: 'like',
+              user: currentUserProfile.username,
+              nick: currentUserProfile.nickname,
+              targetId: tweetId,
+            });
+          }
+
+          // 重建 feedList 并渲染
+          feedList = buildFeedList(coreData);
+          renderFeed();
+
+          // 保存到酒馆
+          await saveFeedToTavern(coreData);
+        });
+
+        // 悬浮按钮滚动渐隐
+        $('#view-home').scroll(function () {
+          const scrollTop = $(this).scrollTop();
+          if (scrollTop > 50) {
+            $('#home-fab').addClass('fade-out');
+          } else {
+            $('#home-fab').removeClass('fade-out');
+          }
+        });
+      });
+
+      // Media Viewer Logic
+      let galleryItems = [];
+      let galleryIndex = 0;
+
+      function openMediaViewer(type, content) {
+        galleryItems = [content];
+        galleryIndex = 0;
+        $('#media-viewer-title').text(type === 'video' ? '视频查看' : '图片查看');
+        updateGalleryUI();
+        $('#media-viewer').removeClass('hidden');
+      }
+
+      function openVideoByRef(regId) {
+        if (!window.videoRegistry[regId]) return;
+        openMediaViewer('video', window.videoRegistry[regId]);
+      }
+
+      function openGalleryByRef(regId, index) {
+        if (!window.mediaRegistry[regId]) return;
+        galleryItems = window.mediaRegistry[regId];
+        galleryIndex = index;
+        $('#media-viewer-title').text('图片查看');
+        updateGalleryUI();
+        $('#media-viewer').removeClass('hidden');
+      }
+
+      function updateGalleryUI() {
+        if (!galleryItems || galleryItems.length === 0) return;
+        $('#media-viewer-content').text(galleryItems[galleryIndex]);
+
+        // Buttons
+        if (galleryIndex > 0) $('#media-prev-btn').removeClass('hidden');
+        else $('#media-prev-btn').addClass('hidden');
+
+        if (galleryIndex < galleryItems.length - 1) $('#media-next-btn').removeClass('hidden');
+        else $('#media-next-btn').addClass('hidden');
+      }
+
+      function changeMedia(delta) {
+        galleryIndex += delta;
+        if (galleryIndex < 0) galleryIndex = 0;
+        if (galleryIndex >= galleryItems.length) galleryIndex = galleryItems.length - 1;
+        updateGalleryUI();
+      }
+
+      function closeMediaViewer() {
+        $('#media-viewer').addClass('hidden');
+      }
+
+      // ========== URL 输入弹窗相关函数 ==========
+      let currentUrlInputType = ''; // 'cover' 或 'avatar'
+
+      function openUrlInput(type) {
+        currentUrlInputType = type;
+        // 根据类型预填当前的 URL
+        let currentUrl = '';
+        if (type === 'cover') {
+          // 从背景样式中提取 URL
+          const bgStyle = $('#edit-cover-preview').attr('style') || '';
+          const match = bgStyle.match(/url\(['"]?([^'"]+)['"]?\)/);
+          if (match) currentUrl = match[1];
+        } else if (type === 'avatar') {
+          currentUrl = $('#edit-avatar-preview').attr('src') || '';
+        }
+        $('#modal-url-value').val(currentUrl);
+        // 显示弹窗
+        $('#modal-input-url').addClass('modal-visible');
+      }
+
+      function closeUrlInput() {
+        $('#modal-input-url').removeClass('modal-visible');
+        $('#modal-url-value').val('');
+        currentUrlInputType = '';
+      }
+
+      function confirmUrlInput() {
+        const newUrl = $('#modal-url-value').val().trim();
+        if (!newUrl) {
+          closeUrlInput();
+          return;
+        }
+
+        if (currentUrlInputType === 'cover') {
+          // 更新封面图片预览和数据
+          $('#edit-cover-preview').css('background-image', `url('${newUrl}')`);
+          currentUserProfile.cover = newUrl;
+        } else if (currentUrlInputType === 'avatar') {
+          // 更新头像预览和数据
+          $('#edit-avatar-preview').attr('src', newUrl);
+          currentUserProfile.avatar = newUrl;
+        }
+
+        closeUrlInput();
+      }
+
+      // ========== 发帖逻辑 ==========
+      let composeState = {
+        sensitivity: 'normal',
+        images: [], // strings
+        video: null, // { desc, duration }
+        replyPermission: 'everyone', // 'everyone' or 'none'
+      };
+
+      function openCompose() {
+        // Reset State
+        composeState = {
+          sensitivity: 'normal',
+          images: [],
+          video: null,
+          replyPermission: 'everyone',
+        };
+
+        // Reset UI
+        $('#compose-text').val('');
+        $('#compose-user-avatar').attr('src', currentUserProfile.avatar);
+        $('#compose-media-preview').empty();
+        $('#compose-more-panel').addClass('hidden');
+
+        // Restore default permission UI
+        $('#reply-perm-icon').attr('class', 'fa-solid fa-earth-americas text-blue-400');
+        $('#reply-perm-text').text('所有人可以回复');
+
+        // Clear stats inputs
+        $('#compose-stat-retweets').val('');
+        $('#compose-stat-likes').val('');
+        $('#compose-stat-replies').val('');
+        $('#compose-stat-views').val('');
+        $('#compose-stat-bookmarks').val('');
+
+        showView('view-compose', false);
+        $('#compose-text').focus();
+      }
+
+      function closeCompose() {
+        showView('view-home', true);
+      }
+
+      function toggleStatsPanel() {
+        $('#compose-more-panel').toggleClass('hidden');
+      }
+
+      function toggleReplyPermission() {
+        if (composeState.replyPermission === 'everyone') {
+          composeState.replyPermission = 'none';
+          $('#reply-perm-icon').attr('class', 'fa-solid fa-lock text-red-500');
+          $('#reply-perm-text').text('禁止回复');
+        } else {
+          composeState.replyPermission = 'everyone';
+          $('#reply-perm-icon').attr('class', 'fa-solid fa-earth-americas text-blue-400');
+          $('#reply-perm-text').text('所有人可以回复');
+        }
+      }
+
+      // Media Input Handling
+      let pendingMediaType = null;
+      let pendingSensitivity = 'normal';
+
+      function openMediaInput(type) {
+        pendingMediaType = type;
+        $('#modal-media-step1').addClass('modal-visible');
+      }
+
+      function nextMediaStep(sensitivity) {
+        pendingSensitivity = sensitivity;
+        $('#modal-media-step1').removeClass('modal-visible');
+
+        if (pendingMediaType === 'image') {
+          $('#image-input-list').empty();
+          // Pre-fill existing images if any? For now just append new ones is simpler for "add more" flow,
+          // but the user usage is "Click button -> Add".
+          // If the user wants to ADD MORE to existing, they click again.
+          // So we start with one empty input.
+          addOneImageInput();
+          $('#modal-image-step2').addClass('modal-visible');
+        } else if (pendingMediaType === 'video') {
+          $('#video-input-desc').val('');
+          $('#video-input-duration').val('');
+          $('#modal-video-step2').addClass('modal-visible');
+        }
+      }
+
+      function closeMediaModal() {
+        $('.modal-overlay').removeClass('modal-visible');
+      }
+
+      function addOneImageInput() {
+        const html = `<input type="text" class="edit-input mb-1 w-full" placeholder="图片 URL 或描述" />`;
+        $('#image-input-list').append(html);
+      }
+
+      function confirmImageInput() {
+        const inputs = $('#image-input-list input');
+        const newImages = [];
+        inputs.each(function () {
+          const val = $(this).val().trim();
+          if (val) newImages.push(val);
+        });
+
+        if (newImages.length > 0) {
+          // Mixed media: append/merge instead of replace
+          composeState.sensitivity = pendingSensitivity; // Apply sensitivity to the latest batch or whole tweet?
+          // User requested mixed media. Sensitivity usually applies per tweet or per media.
+          // Simplified: Update global sensitivity for the tweet based on latest input
+          composeState.images = composeState.images.concat(newImages);
+          renderComposePreviews();
+        }
+        closeMediaModal();
+      }
+
+      function confirmVideoInput() {
+        const desc = $('#video-input-desc').val().trim();
+        const duration = $('#video-input-duration').val().trim();
+
+        if (desc) {
+          composeState.sensitivity = pendingSensitivity;
+          composeState.video = { desc, duration };
+          renderComposePreviews();
+        }
+        closeMediaModal();
+      }
+
+      function renderComposePreviews() {
+        const container = $('#compose-media-preview');
+        container.empty();
+
+        // Helper for sensitivity badge
+        const getSensBadge = () =>
+          composeState.sensitivity === 'sensitive'
+            ? '<div class="absolute bottom-1 right-1 bg-red-500 text-white text-[10px] px-1 rounded">Sensitive</div>'
+            : '';
+
+        // Render Images
+        if (composeState.images.length > 0) {
+          composeState.images.forEach((img, idx) => {
+            const html = `
+                  <div class="compose-preview-item aspect-square bg-gray-800 flex items-center justify-center p-2 text-xs text-center text-gray-400 relative group">
+                     <div class="line-clamp-3">${escapeHtml(img)}</div>
+                     <div class="remove-media-btn" onclick="removeComposeMedia('image', ${idx})">
+                        <i class="fa-solid fa-xmark"></i>
+                     </div>
+                     ${getSensBadge()}
+                  </div>
+               `;
+            container.append(html);
+          });
+        }
+
+        // Render Video
+        if (composeState.video) {
+          const html = `
+                <div class="compose-preview-item aspect-video bg-gray-800 flex items-center justify-center p-2 text-xs text-center text-gray-400 col-span-2 relative group">
+                   <div>
+                      <div class="line-clamp-2 font-bold mb-1">${escapeHtml(composeState.video.desc)}</div>
+                      <div class="opacity-70">${escapeHtml(composeState.video.duration)}</div>
+                   </div>
+                   <div class="remove-media-btn" onclick="removeComposeMedia('video', 0)">
+                      <i class="fa-solid fa-xmark"></i>
+                   </div>
+                   ${getSensBadge()}
+                </div>
+             `;
+          container.append(html);
+        }
+      }
+
+      function removeComposeMedia(type, idx) {
+        if (type === 'image') {
+          composeState.images.splice(idx, 1);
+        } else {
+          composeState.video = null;
+        }
+        renderComposePreviews();
+      }
+
+      function getRandomStat(suffix) {
+        let num = (Math.random() * 100).toFixed(1);
+        // Randomize range a bit more for realism
+        if (suffix === 'k') num = (Math.random() * 50).toFixed(1);
+        if (suffix === 'm') num = (Math.random() * 5).toFixed(1);
+        if (suffix === '') num = Math.floor(Math.random() * 500);
+
+        // Remove .0
+        if (num.toString().endsWith('.0')) num = Math.floor(num);
+
+        return num + suffix;
+      }
+
+      function generateUniqueId() {
+        let id;
+        do {
+          id = 'tweet_' + Math.random().toString(36).substr(2, 9);
+        } while (tweetsById[id]);
+        return id;
+      }
+
+      async function submitTweet() {
+        const text = $('#compose-text').val().trim();
+        const hasMedia = composeState.images.length > 0 || composeState.video !== null;
+
+        if (!text && !hasMedia) {
+          alert('请输入内容或添加媒体');
+          return;
+        }
+
+        const newId = generateUniqueId();
+        const p = currentUserProfile;
+
+        // Stats
+        const stats = {
+          retweets: $('#compose-stat-retweets').val().trim() || getRandomStat('k'),
+          likes: $('#compose-stat-likes').val().trim() || getRandomStat('w'),
+          replies: $('#compose-stat-replies').val().trim() || getRandomStat(''),
+          views: $('#compose-stat-views').val().trim() || getRandomStat('m'),
+          bookmarks: $('#compose-stat-bookmarks').val().trim() || getRandomStat(''),
+        };
+
+        // Correct suffix 'w' to '万' if user prefers chinese context, but user said "mid-english numbers ok".
+        // I'll stick to user instructions: "多少k/多少万/多少m/多少b".
+        // I'll randomly pick suffixes in getRandomStat?
+        // Let's refine getRandomStat slightly to be more diverse as requested.
+
+        if (composeState.replyPermission === 'none') {
+          stats.replies = '0';
+        }
+
+        // Tweet Object
+        const newTweet = {
+          type: 'tw',
+          id: newId,
+          pin: false,
+          replyTo: null,
+          author: {
+            username: p.username,
+            nickname: p.nickname,
+            avatar: p.avatar,
+            verified: p.verified ? 1 : 0,
+            time: new Date(getSystemTime()).toISOString(), // Use system time logic
+          },
+          text: text || '',
+          images: composeState.images,
+          imagesSensitive: composeState.images.length > 0 && composeState.sensitivity === 'sensitive',
+          video: composeState.video,
+          videoSensitive: composeState.video !== null && composeState.sensitivity === 'sensitive',
+          linkCard: null,
+          quote: null,
+          poll: null,
+          stats: stats,
+          flags: {
+            disableReply: composeState.replyPermission === 'none',
+            likedByMe: 0,
+            retweetedByMe: 0,
+            bookmarkedByMe: 0,
+          },
+        };
+
+        // Save to coreData
+        coreData.tweetsById[newId] = newTweet;
+        coreData.feedEntries.unshift({ type: 'tweet', id: newId });
+
+        // Rebuild feedList from coreData
+        feedList = buildFeedList(coreData);
+
+        // Refresh View
+        renderFeed();
+
+        // Try saving to tavern
+        // Flatten data structures
+        await saveFeedToTavern(coreData);
+
+        closeCompose();
+      }
+    </script>
+  </div>
+</div>
