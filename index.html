@@ -1,15 +1,15 @@
-<!-- TailwindCSS（酒馆助手已内置，但注释里说还未在酒馆使用，所以保留外链） -->
-<script src="https://cdn.tailwindcss.com"></script>
+    <!-- 1. TailwindCSS 还未在酒馆使用，保留外部链接-->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+    <!-- 2. Font Awesome7.0.0可用版调试用勿删 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
 
-<!-- Uicons -->
-<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css" />
-<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
-
-<!-- jQuery 已由酒馆助手内置，无需重复引入 -->
-
+    <!-- 3. Uicons -->
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-straight/css/uicons-solid-straight.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
+    />
 
     <style type="text/tailwindcss">
       /* === 1. 颜色变量 === */
@@ -123,7 +123,7 @@
       .sticky-header {
         background-color: var(--app-header-bg);
         border-bottom: 1px solid var(--app-border);
-        @apply sticky top-0 z-30 backdrop-blur-md;
+        @apply sticky top-0 z-30 backdrop-blur-md rounded-t-xl;
       }
 
       .header-row {
@@ -361,18 +361,9 @@
       ::-webkit-scrollbar-track {
         background: transparent;
       }
-
-      /* 原 body 标签上的样式，转换为普通 CSS */
-      .load-wrapper {
-        background: transparent;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
     </style>
-
-<div class="load-wrapper">
-  <div id="app-wrapper" class="app-wrapper">
+  </head>
+    <div id="app-wrapper" class="app-wrapper">
       <div id="app-box" class="app-container">
         <!-- =======================
              VIEW 1: 首页 (Home)
@@ -384,7 +375,7 @@
                 class="avatar-top rounded-full bg-gray-600 overflow-hidden cursor-pointer hover:opacity-80 transition"
                 onclick="goToProfile()"
               >
-                <img id="home-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Me" />
+                <img id="home-user-avatar" src="" alt="Me" />
               </div>
               <div class="absolute inset-x-0 flex justify-center text-lg pointer-events-none">
                 <i class="fa-brands fa-x-twitter"></i>
@@ -464,7 +455,7 @@
           <header class="sticky-header">
             <div class="header-row">
               <div class="avatar-top rounded-full bg-gray-600 overflow-hidden cursor-pointer" onclick="goToProfile()">
-                <img id="search-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Me" />
+                <img id="search-user-avatar" src="" alt="Me" />
               </div>
               <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
@@ -520,7 +511,7 @@
           <header class="sticky-header">
             <div class="header-row">
               <div class="avatar-top rounded-full bg-gray-600 overflow-hidden cursor-pointer" onclick="goToProfile()">
-                <img id="messages-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Me" />
+                <img id="messages-user-avatar" src="" alt="Me" />
               </div>
               <div class="font-bold ml-4 text-lg">聊天</div>
               <div class="flex-1"></div>
@@ -565,11 +556,7 @@
                 class="w-20 h-20 rounded-full border-4 absolute -top-10 left-4 overflow-hidden cursor-pointer hover:opacity-90 transition"
                 style="border-color: var(--app-bg); background-color: var(--app-bg)"
               >
-                <img
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=User"
-                  class="w-full h-full object-cover"
-                  id="profile-avatar-display"
-                />
+                <img src="" class="w-full h-full object-cover" id="profile-avatar-display" />
               </div>
 
               <div class="flex justify-end pt-3">
@@ -584,30 +571,27 @@
 
               <div class="mt-4">
                 <div class="font-bold text-xl leading-tight flex items-center gap-1">
-                  <span id="profile-nickname-display">User</span>
+                  <span id="profile-nickname-display"></span>
                   <span id="profile-verified-display">
                     <i class="fi fi-ss-badge-check text-blue-500 text-sm mt-1"></i>
                   </span>
                 </div>
                 <div class="text-sm" style="color: var(--app-text-dim)">
-                  @<span id="profile-username-display">user_123456</span>
+                  @<span id="profile-username-display"></span>
                 </div>
 
-                <div class="mt-3 text-sm leading-normal whitespace-pre-wrap" id="profile-bio-display">
-                  前端小白努力学习中！🌱 <br />这是一个由 AI 辅助生成的页面。
-                </div>
+                <div class="mt-3 text-sm leading-normal whitespace-pre-wrap" id="profile-bio-display"></div>
 
                 <div class="mt-3 flex gap-3 text-sm flex-wrap" style="color: var(--app-text-dim)">
                   <span id="profile-location-wrapper" class="hidden">
                     <i class="fa-solid fa-location-dot mr-1"></i> <span id="profile-location-display"></span>
                   </span>
                   <span id="profile-website-wrapper">
-                    <i class="fa-solid fa-link mr-1"></i> <span id="profile-website-display">github.com</span>
+                    <i class="fa-solid fa-link mr-1"></i> <span id="profile-website-display"></span>
                   </span>
                   <span
-                    ><i class="fa-solid fa-calendar-days mr-1"></i>
-                    <span id="profile-join-date-display">2023年10月加入</span></span
-                  >
+                    ><i class="fa-solid fa-calendar-days mr-1"></i> <span id="profile-join-date-display"></span
+                  ></span>
                 </div>
 
                 <div class="mt-3 flex gap-4 text-sm mb-2">
@@ -616,7 +600,7 @@
                     <span style="color: var(--app-text-dim)">正在关注</span></span
                   >
                   <span
-                    ><span class="font-bold" style="color: var(--app-text)" id="profile-followers-display">8,964</span>
+                    ><span class="font-bold" style="color: var(--app-text)" id="profile-followers-display"></span>
                     <span style="color: var(--app-text-dim)">关注者</span></span
                   >
                 </div>
@@ -649,19 +633,16 @@
 
           <div id="profile-content">
             <div id="profile-tab-posts">
-              <!-- 此处将由 JS 动态渲染用户的帖子 -->
-              <div class="p-8 text-center text-sm" style="color: var(--app-text-dim)">暂无帖子</div>
+              <!-- 由 JS 动态渲染 -->
             </div>
-            <div id="profile-tab-replies" class="hidden p-8 text-center text-sm" style="color: var(--app-text-dim)">
-              此处应显示回复内容...
+            <div id="profile-tab-replies" class="hidden">
+              <!-- 由 JS 动态渲染 -->
             </div>
-            <div id="profile-tab-media" class="hidden p-2 grid grid-cols-3 gap-1">
-              <div class="aspect-square bg-gray-800"></div>
-              <div class="aspect-square bg-gray-700"></div>
-              <div class="aspect-square bg-gray-600"></div>
+            <div id="profile-tab-media" class="hidden">
+              <!-- 由 JS 动态渲染 -->
             </div>
-            <div id="profile-tab-likes" class="hidden p-8 text-center text-sm" style="color: var(--app-text-dim)">
-              User 还没有喜欢任何帖子。
+            <div id="profile-tab-likes" class="hidden">
+              <!-- 由 JS 动态渲染 -->
             </div>
           </div>
         </div>
@@ -1095,74 +1076,12 @@
         feedEntries: [], // 首页条目列表（tw/re/rt/like）
       };
 
-      // 从楼层加载的数据源，初始为空
+      // 从楼层加载的数据源，初始为空（如果楼层没有数据则使用此默认值）
       let FEED_SOURCE = `
-[tw|silly1]
-[p|st_user|SillyTavern User|https://api.dicebear.com/7.x/avataaars/svg?seed=Felix|1|2025-08-20T15:21:00+08:00|3|56|12|1200|1|0|0|0|0]
-[txt|这只是文字内容。]
-[img|这是一张风景图的描述，点击可以查看大图|这是第二张图片的描述]
-[vid|这是一个关于AI功能的演示视频，非常精彩|0:45]
-[link|SillyTavern 官方文档|详细的使用指南和API参考|https://docs.sillytavern.app|https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=200]
-[poll|1|2]
-[opt|很棒|80]
-[opt|一般|20]
-[/poll]
-[qt]
-[p|original_poster|OP|https://api.dicebear.com/7.x/avataaars/svg?seed=OP|1]
-[txt|这是被引用的原推文。]
-[/qt]
+[tw|pinned_welcome|pin]
+[p|user_123456|User|https://api.dicebear.com/7.x/avataaars/svg?seed=User|1|2025-12-01T12:00:00+08:00|0|0|0|0|0|0|0|0|0]
+[txt|关注辣椒酱谢谢喵。]
 [/tw]
-[tw|video_tweet]
-[p|ai_helper|AI Assistant|https://api.dicebear.com/7.x/bottts/svg?seed=Bot|1|2025-08-20T14:00:00+08:00|1|8|5|200|0|0|1|0|0]
-[txt|来看看这个演示视频。]
-[vid|这是一个关于AI功能的演示视频，非常精彩|0:45]
-[/tw]
-[tw|sensitive_demo]
-[p|nsfw_user|隐秘角落|https://api.dicebear.com/7.x/identicon/svg?seed=Secret|0|2025-08-20T14:30:00+08:00|0|5|0|100|0|0|0|0|0]
-[txt|这是一条包含敏感内容的测试推文。]
-[img.block|这是一张敏感图片|这是另一张]
-[/tw]
-[tw|link_tweet]
-[p|tech_news|Tech Daily|https://api.dicebear.com/7.x/shapes/svg?seed=Tech|1|2025-08-20T12:00:00+08:00|50|200|10|5000|2|0|0|0|0]
-[txt|最新的科技新闻已经发布了，快来看看吧！]
-[link|2025年科技趋势报告|深度解析AI与未来的发展关系|https://example.com|https://images.unsplash.com/photo-1518770660439-4636190af475?w=200]
-[/tw]
-[tw|poll_tweet]
-[p|vote_master|Everyday Polls|https://api.dicebear.com/7.x/avataaars/svg?seed=Vote|0|2025-08-20T10:00:00+08:00|10|42|5|1000|0|0|0|0|0]
-[txt|你更喜欢哪种编程语言？]
-[poll|0|1]
-[opt|JavaScript|150]
-[opt|Python|200]
-[opt|Rust|50]
-[/poll]
-[/tw]
-[tw|full_feature]
-[p|super_user|Power User|https://api.dicebear.com/7.x/avataaars/svg?seed=Super|1|2025-08-20T09:00:00+08:00|99|999|99|9999|9|0|1|1|1]
-[txt|这是一个
-包含所有元素的推文测试！]
-[img|第一张图是关于架构设计的|第二张图是代码细节]
-[link|SillyTavern 官方文档|详细的使用指南和API参考|https://docs.sillytavern.app|https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=200]
-[poll|1|2]
-[opt|很棒|80]
-[opt|一般|20]
-[/poll]
-[qt]
-[p|original_poster|OP|https://api.dicebear.com/7.x/avataaars/svg?seed=OP|1]
-[txt|这是被引用的原推文。]
-[/qt]
-[/tw]
-[re|reply1|silly1]
-[p|reply_guy|Reply Guy|https://api.dicebear.com/7.x/avataaars/svg?seed=Reply|0|2025-08-20T16:00:00+08:00|0|1|0|10|0|0|0|0|0]
-[txt|看起来不错！]
-[img|一张表示赞同的图片描述]
-[/re]
-[rt|my_user|你|link_tweet]
-[like|my_user|你|video_tweet]
-[rt|my_user|你|non_existent_tweet_id]
-[re|reply_to_missing|non_existent_id]
-[p|my_user|你|https://api.dicebear.com/7.x/avataaars/svg?seed=User|1|2025-08-20T17:00:00+08:00|0|0|0|0|0|0|0|0]
-[txt|回复给一个不存在的推文测试。]
-[/re]
 `;
 
       let feedList = []; // 仅用于渲染，由 coreData 派生
@@ -1177,12 +1096,12 @@
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
         cover:
           'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-        bio: 'Hello,world.',
+        bio: 'HELLO, WO0orld',
         location: '',
-        website: 'github.com',
-        followers: 8964,
+        website: 'openai.com',
+        followers: 1213,
         verified: true,
-        joinDate: '2023年10月加入',
+        joinDate: '2020年7月加入',
         // 系统时间基准 (时间戳), null 表示使用当前真实时间
         systemBaseTime: null,
         // 系统时间偏移量 (用于通过真实时间计算相对时间)
@@ -1240,9 +1159,140 @@
 
         // Followers
         $('#profile-followers-display').text(p.followers.toLocaleString());
+
+        // 渲染个人主页标签页内容
+        renderProfileTabs();
       }
 
-      // 打开编辑页面
+      /**
+       * 获取指定用户的个人主页数据
+       * @param {string} [targetUsername] - 目标用户名，默认为当前用户
+       * @returns {object} { posts, replies, media, likes }
+       */
+      function getUserProfileData(targetUsername) {
+        const username = targetUsername || currentUserProfile.username;
+        const { tweetsById, feedEntries } = coreData;
+
+        // 帖子：该用户发的 tw 类型推文 + 该用户的转推
+        const userTweets = Object.values(tweetsById).filter(t => t.author?.username === username && t.type === 'tw');
+
+        // 获取该用户的转推条目
+        const userRetweets = feedEntries
+          .filter(e => e.type === 'status' && e.statusType === 'rt' && e.user === username)
+          .map(e => {
+            const tweet = tweetsById[e.targetId];
+            return {
+              type: 'rt',
+              tweet: tweet,
+              time: Date.parse(tweet?.author?.time) || 0,
+              rtUser: e.user,
+              rtNick: e.nick,
+            };
+          })
+          .filter(item => item.tweet);
+
+        // 合并帖子和转推
+        const allPosts = [
+          ...userTweets.map(t => ({
+            type: 'tw',
+            tweet: t,
+            time: Date.parse(t.author?.time) || 0,
+          })),
+          ...userRetweets,
+        ];
+
+        // 处理置顶：找出置顶帖子（只看 tw 类型）
+        const pinnedPosts = allPosts.filter(item => item.type === 'tw' && item.tweet.pin);
+        const normalPosts = allPosts.filter(item => !(item.type === 'tw' && item.tweet.pin));
+
+        // 多个置顶取最新的一个
+        pinnedPosts.sort((a, b) => b.time - a.time);
+        const topPinned = pinnedPosts.length > 0 ? [pinnedPosts[0]] : [];
+
+        // 普通帖子按时间排序
+        normalPosts.sort((a, b) => b.time - a.time);
+
+        // 最终帖子列表：置顶在前
+        const posts = [...topPinned, ...normalPosts];
+
+        // 回复：该用户发的 re 类型推文
+        const replies = Object.values(tweetsById)
+          .filter(t => t.author?.username === username && t.type === 're')
+          .sort((a, b) => Date.parse(b.author?.time) - Date.parse(a.author?.time));
+
+        // 媒体：有 images 或 video 的推文
+        const media = Object.values(tweetsById)
+          .filter(t => t.author?.username === username && ((t.images && t.images.length > 0) || t.video))
+          .sort((a, b) => Date.parse(b.author?.time) - Date.parse(a.author?.time));
+
+        // 喜欢：该用户点赞的条目
+        const likes = feedEntries
+          .filter(e => e.type === 'status' && e.statusType === 'like' && e.user === username)
+          .map(e => ({
+            tweet: tweetsById[e.targetId],
+            time: Date.parse(tweetsById[e.targetId]?.author?.time) || 0,
+          }))
+          .filter(item => item.tweet)
+          .sort((a, b) => b.time - a.time);
+
+        return { posts, replies, media, likes };
+      }
+
+      /**
+       * 渲染个人主页的四个标签页
+       */
+      function renderProfileTabs() {
+        const { posts, replies, media, likes } = getUserProfileData();
+        const emptyHtml = `<div class="p-8 text-center text-sm" style="color: var(--app-text-dim)">暂无内容</div>`;
+
+        // 渲染帖子标签页
+        if (posts.length > 0) {
+          const postsHtml = posts
+            .map(item => {
+              if (item.type === 'rt') {
+                // 转推：显示带状态头的推文卡片
+                return renderTweetCard(item.tweet, {
+                  statusType: 'rt',
+                  user: item.rtUser,
+                  nick: item.rtNick,
+                });
+              } else if (item.tweet.pin) {
+                // 置顶推文：使用状态头显示置顶标记
+                return renderTweetCard(item.tweet, { statusType: 'pin' });
+              } else {
+                return renderTweetCard(item.tweet, null);
+              }
+            })
+            .join('');
+          $('#profile-tab-posts').html(postsHtml);
+        } else {
+          $('#profile-tab-posts').html(emptyHtml);
+        }
+
+        // 渲染回复标签页
+        if (replies.length > 0) {
+          const repliesHtml = replies.map(t => renderReplyCard(t)).join('');
+          $('#profile-tab-replies').html(repliesHtml);
+        } else {
+          $('#profile-tab-replies').html(emptyHtml);
+        }
+
+        // 渲染媒体标签页（完整帖子列表）
+        if (media.length > 0) {
+          const mediaHtml = media.map(t => renderTweetCard(t, null)).join('');
+          $('#profile-tab-media').html(mediaHtml);
+        } else {
+          $('#profile-tab-media').html(emptyHtml);
+        }
+
+        // 渲染喜欢标签页
+        if (likes.length > 0) {
+          const likesHtml = likes.map(item => renderTweetCard(item.tweet, null)).join('');
+          $('#profile-tab-likes').html(likesHtml);
+        } else {
+          $('#profile-tab-likes').html(emptyHtml);
+        }
+      }
       function openEditProfile() {
         const p = currentUserProfile;
         $('#edit-nickname').val(p.nickname);
@@ -1274,7 +1324,7 @@
       }
 
       // 保存资料
-      function saveProfile() {
+      async function saveProfile() {
         const p = currentUserProfile;
         p.nickname = $('#edit-nickname').val();
         p.username = $('#edit-username').val();
@@ -1306,9 +1356,9 @@
         // 刷新信息流以应用新的时间计算
         renderFeed();
 
-        // 保存到世界书
-        saveProfileToWorldbook();
-        saveSettingsToWorldbook();
+        // 保存到世界书（顺序执行，避免竞态条件）
+        await saveProfileToWorldbook();
+        await saveSettingsToWorldbook();
 
         showView('view-profile', true);
       }
@@ -1998,6 +2048,17 @@
 
       function buildStatusHeader(status) {
         if (!status) return '';
+
+        // 置顶类型特殊处理
+        if (status.statusType === 'pin') {
+          return `
+                <div class="tweet-status-header">
+                  <i class="fa-solid fa-thumbtack"></i>
+                  <span>已置顶</span>
+                </div>
+              `;
+        }
+
         const name = status.nick || status.user;
         const text = status.statusType === 'rt' ? '转推了' : '喜欢了';
         const icon = status.statusType === 'rt' ? 'fa-solid fa-retweet' : 'fa-regular fa-heart';
@@ -2303,6 +2364,24 @@
         $('#feed-recommend-list').html(html.join(''));
       }
 
+      /**
+       * 统一刷新所有视图（当 coreData 变化时调用）
+       * 保存并恢复滚动位置
+       */
+      function refreshAllViews() {
+        const scrollTop = $('#view-home').scrollTop();
+
+        // 1. 重建并渲染首页列表
+        feedList = buildFeedList(coreData);
+        renderFeed();
+
+        // 2. 渲染个人主页标签页
+        renderProfileTabs();
+
+        // 3. 恢复滚动位置
+        $('#view-home').scrollTop(scrollTop);
+      }
+
       // 获取祖先链（从最顶层到当前的父级）
       function getAncestorChain(tweet) {
         const chain = [];
@@ -2589,10 +2668,17 @@
         }
       }
 
-      // 跳转到详情页（带历史栈）
+      // 跳转到详情页（带历史栈，记录来源页面）
       function goToDetail(tweetId) {
         const tweet = coreData.tweetsById[tweetId];
-        viewHistory.push({ type: 'detail', tweetId: tweetId });
+        // 记录当前可见的页面作为来源
+        let fromView = 'view-home';
+        if (!$('#view-profile').hasClass('hidden')) {
+          fromView = 'view-profile';
+        } else if (!$('#view-search').hasClass('hidden')) {
+          fromView = 'view-search';
+        }
+        viewHistory.push({ type: 'detail', tweetId: tweetId, from: fromView });
         renderDetail(tweet);
         showView('view-detail', false);
         // 滚动到顶部
@@ -2601,10 +2687,11 @@
 
       // 返回上一级
       function goBack() {
-        viewHistory.pop(); // 弹出当前
+        const current = viewHistory.pop(); // 弹出当前
         if (viewHistory.length === 0) {
-          // 栈空，返回首页
-          showView('view-home', true);
+          // 栈空，返回来源页面或首页
+          const backTo = current?.from || 'view-home';
+          showView(backTo, backTo === 'view-home');
         } else {
           const prev = viewHistory[viewHistory.length - 1];
           if (prev.type === 'detail') {
@@ -2612,7 +2699,9 @@
             showView('view-detail', false);
             $('#view-detail').scrollTop(0);
           } else {
-            showView('view-home', true);
+            // 返回来源页面
+            const backTo = current?.from || 'view-home';
+            showView(backTo, backTo === 'view-home');
           }
         }
       }
@@ -2804,7 +2893,7 @@ ${profileYaml}
                   keys_secondary: { logic: 'and_any', keys: [] },
                   scan_depth: 'same_as_global',
                 },
-                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 100 },
+                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 1213 },
                 content: serializeProfileToContent(),
                 probability: 100,
                 recursion: { prevent_incoming: false, prevent_outgoing: true, delay_until: null },
@@ -2837,7 +2926,7 @@ ${profileYaml}
                   keys_secondary: { logic: 'and_any', keys: [] },
                   scan_depth: 'same_as_global',
                 },
-                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 101 },
+                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 1213 },
                 content: serializeSettingsToContent(),
                 probability: 100,
                 recursion: { prevent_incoming: false, prevent_outgoing: true, delay_until: null },
@@ -2965,6 +3054,15 @@ ${profileYaml}
           }
         });
 
+        // 个人主页标签页点击（帖子、回复、喜欢）
+        $('#profile-content').on('click', '[data-tweet-id]', function (e) {
+          if ($(e.target).closest('.action-btn-group').length) return;
+          const tweetId = $(this).data('tweetId');
+          if (tweetId) {
+            goToDetail(tweetId);
+          }
+        });
+
         // 返回按钮
         $('#detail-back-btn').on('click', function () {
           goBack();
@@ -3069,9 +3167,8 @@ ${profileYaml}
             });
           }
 
-          // 重建 feedList 并渲染
-          feedList = buildFeedList(coreData);
-          renderFeed();
+          // 统一刷新所有视图
+          refreshAllViews();
 
           // 保存到酒馆
           await saveFeedToTavern(coreData);
@@ -3379,7 +3476,7 @@ ${profileYaml}
         let id;
         do {
           id = 'tweet_' + Math.random().toString(36).substr(2, 9);
-        } while (tweetsById[id]);
+        } while (coreData.tweetsById[id]);
         return id;
       }
 
@@ -3447,18 +3544,12 @@ ${profileYaml}
         coreData.tweetsById[newId] = newTweet;
         coreData.feedEntries.unshift({ type: 'tweet', id: newId });
 
-        // Rebuild feedList from coreData
-        feedList = buildFeedList(coreData);
+        // 统一刷新所有视图
+        refreshAllViews();
 
-        // Refresh View
-        renderFeed();
-
-        // Try saving to tavern
-        // Flatten data structures
+        // 保存到酒馆
         await saveFeedToTavern(coreData);
 
         closeCompose();
       }
     </script>
-  </div>
-</div>
