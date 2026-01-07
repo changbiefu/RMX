@@ -10,7 +10,6 @@
       rel="stylesheet"
       href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
     />
-
     <style type="text/tailwindcss">
       /* === 1. 颜色变量 === */
       :root {
@@ -326,10 +325,32 @@
       }
 
       /* === 10. 发帖界面 === */
+      .compose-input-wrapper {
+        @apply relative w-full min-h-[120px];
+      }
+      .compose-highlight-layer {
+        @apply absolute top-0 left-0 w-full h-full text-lg pointer-events-none whitespace-pre-wrap break-words overflow-hidden;
+        color: var(--app-text);
+        line-height: inherit;
+        font-family: inherit;
+        padding: 0;
+      }
+      .compose-highlight-layer .mention {
+        @apply text-blue-400;
+      }
+      .compose-highlight-layer .hashtag {
+        @apply text-blue-400;
+      }
       .compose-textarea {
         background: transparent;
-        @apply w-full h-full text-lg outline-none resize-none placeholder-gray-500;
-        color: var(--app-text);
+        @apply w-full h-full text-lg outline-none resize-none placeholder-gray-500 relative;
+        color: transparent;
+        caret-color: var(--app-text);
+        -webkit-text-fill-color: transparent;
+      }
+      .compose-textarea::placeholder {
+        color: #6b7280;
+        -webkit-text-fill-color: #6b7280;
       }
       .compose-toolbar {
         border-top: 1px solid var(--app-border);
@@ -631,7 +652,7 @@
                 </div>
 
                 <div class="mt-3 flex gap-4 text-sm mb-2">
-                  <span
+                  <span id="profile-following-link" class="cursor-pointer hover:underline" onclick="openFollowingPage()"
                     ><span class="font-bold" style="color: var(--app-text)" id="profile-following-display"></span>
                     <span style="color: var(--app-text-dim)">正在关注</span></span
                   >
@@ -684,7 +705,36 @@
         </div>
 
         <!-- =======================
-             VIEW 6: 编辑个人资料 (Edit Profile)
+             VIEW 6: 正在关注 (Following)
+             ======================= -->
+        <div id="view-following" class="view-container hidden">
+          <header class="sticky-header">
+            <div class="header-row">
+              <button
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                onclick="closeFollowingPage()"
+              >
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div class="font-bold text-lg ml-2">正在关注</div>
+              <div class="flex-1"></div>
+              <button
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                style="color: var(--app-text-dim)"
+                onclick="openAddFollowingModal()"
+              >
+                <i class="fa-solid fa-user-plus"></i>
+              </button>
+            </div>
+          </header>
+
+          <div id="following-list" class="px-4 py-2">
+            <!-- 由 JS 动态渲染 -->
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 7: 编辑个人资料 (Edit Profile)
              ======================= -->
         <div id="view-edit-profile" class="view-container hidden z-50 bg-[var(--app-bg)]">
           <header class="sticky-header">
@@ -829,7 +879,17 @@
                 <div id="compose-reply-hint" class="text-sm mb-2 hidden" style="color: var(--app-text-dim)">
                   回复给 <span id="compose-reply-username" class="text-blue-400">@用户名</span>
                 </div>
-                <textarea id="compose-text" class="compose-textarea" placeholder="有什么新鲜事？" rows="4"></textarea>
+                <!-- 输入框 + 高亮覆盖层 -->
+                <div class="compose-input-wrapper">
+                  <div id="compose-highlight" class="compose-highlight-layer"></div>
+                  <textarea
+                    id="compose-text"
+                    class="compose-textarea"
+                    placeholder="有什么新鲜事？"
+                    rows="4"
+                    oninput="updateComposeHighlight()"
+                  ></textarea>
+                </div>
 
                 <!-- Media Previews -->
                 <div id="compose-media-preview" class="grid grid-cols-2 gap-2 mt-2 empty:hidden"></div>
@@ -1157,9 +1217,125 @@
           </div>
         </div>
 
+        <!-- Edit Following User Modal -->
+        <div id="modal-edit-following" class="modal-overlay">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">编辑关注用户信息</h3>
+            <div class="space-y-3">
+              <div class="edit-input-group mb-0">
+                <label class="edit-input-label">用户名</label>
+                <input type="text" id="edit-following-username" class="edit-input" readonly style="opacity: 0.6" />
+              </div>
+              <div class="edit-input-group mb-0">
+                <label class="edit-input-label">头像 URL</label>
+                <input type="text" id="edit-following-avatar" class="edit-input" placeholder="https://..." />
+              </div>
+              <div class="edit-input-group mb-0">
+                <label class="edit-input-label">背景横幅 URL</label>
+                <input type="text" id="edit-following-cover" class="edit-input" placeholder="https://..." />
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-4">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border hover:bg-white/10"
+                style="border-color: var(--app-border)"
+                onclick="closeEditFollowingModal()"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90"
+                onclick="confirmEditFollowing()"
+              >
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Following User Modal -->
+        <div id="modal-add-following" class="modal-overlay">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">添加关注用户</h3>
+            <div class="space-y-3">
+              <div class="edit-input-group mb-0">
+                <label class="edit-input-label">用户名 <span class="text-red-400">*必填</span></label>
+                <input type="text" id="add-following-username" class="edit-input" placeholder="username" />
+              </div>
+              <div class="edit-input-group mb-0">
+                <label class="edit-input-label">头像 URL（可选）</label>
+                <input type="text" id="add-following-avatar" class="edit-input" placeholder="留空使用默认头像" />
+              </div>
+              <div class="edit-input-group mb-0">
+                <label class="edit-input-label">背景横幅 URL（可选）</label>
+                <input type="text" id="add-following-cover" class="edit-input" placeholder="留空使用默认背景" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-4">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border hover:bg-white/10"
+                style="border-color: var(--app-border)"
+                onclick="closeAddFollowingModal()"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90"
+                onclick="confirmAddFollowing()"
+              >
+                添加
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Toast 弹窗提示 -->
         <div class="toast-container">
           <div id="app-toast" class="toast">发布成功</div>
+        </div>
+
+        <!-- 解析失败弹窗 -->
+        <div id="modal-parse-error" class="modal-overlay">
+          <div class="modal-box" style="max-height: 70%">
+            <h3 class="font-bold text-lg mb-2 text-red-400 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              解析失败
+            </h3>
+            <p class="text-xs mb-3" style="color: var(--app-text-dim)">
+              AI 返回的内容无法解析为有效的推文格式，原始内容如下：
+            </p>
+            <div
+              id="parse-error-content"
+              class="flex-1 overflow-y-auto p-3 rounded-xl text-sm whitespace-pre-wrap break-words mb-4"
+              style="background-color: var(--app-border); color: var(--app-text); min-height: 100px; max-height: 40vh"
+            ></div>
+            <div class="flex justify-end gap-3 shrink-0">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border hover:bg-white/10 transition"
+                style="border-color: var(--app-border)"
+                onclick="copyParseErrorContent()"
+              >
+                <i class="fa-regular fa-copy mr-1"></i>复制
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90 transition"
+                onclick="closeParseErrorModal()"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 刷新加载遮罩 -->
+        <div
+          id="refresh-loading-overlay"
+          class="absolute inset-0 z-[70] bg-black/50 hidden flex-col items-center justify-center backdrop-blur-sm"
+        >
+          <div class="text-4xl text-white mb-4">
+            <i class="fa-solid fa-rotate-right fa-spin"></i>
+          </div>
+          <div class="text-sm text-white">正在刷新，请稍候...</div>
         </div>
       </div>
     </div>
@@ -1214,34 +1390,49 @@
         }
 
         // 尝试构建他人资料对象
-        // 1. 优先从 tweetsById 中找到该用户最近的一条推文来获取最新的头像/认证信息/昵称
         let targetUser = null;
-        const allTweets = Object.values(coreData.tweetsById);
 
-        // 找最新的
-        // 假设 coreData.tweetsById 里的 time 是可靠的，或者我们直接找最后一条匹配的
-        const userTweets = allTweets.filter(t => t.author && t.author.username === username);
-        if (userTweets.length > 0) {
-          // Sort by time desc just to be sure to get latest info
-          userTweets.sort((a, b) => Date.parse(b.author.time) - Date.parse(a.author.time));
-          const latest = userTweets[0].author;
+        // 1. 优先使用临时 profile 缓存（刷新时获取的数据）
+        const cachedProfile = tempProfileCache[username];
+        if (cachedProfile) {
           targetUser = {
-            nickname: latest.nickname,
-            username: latest.username,
-            avatar: latest.avatar,
-            verified: Boolean(latest.verified),
-            // 以下字段因为只存在于 Page 中，这里只能给默认值
-            cover: null, // 将在 renderProfile 中处理为默认
-            bio: '',
-            location: '',
-            website: '',
-            joinDate: '未知时间加入',
-            followers: 0,
-            following: 0,
+            ...cachedProfile,
+            // 确保 avatar 和 cover 有值
+            avatar: cachedProfile.avatar || getDisplayAvatar(username),
+            cover: cachedProfile.cover || null,
             followingList: [],
           };
-        } else {
-          // 如果连推文都找不到（比如直接点的 @引用 但没加载推文），则创建一个空的占位
+        }
+
+        // 2. 如果没有缓存，从 tweetsById 中找到该用户最近的一条推文来获取信息
+        if (!targetUser) {
+          const allTweets = Object.values(coreData.tweetsById);
+          const userTweets = allTweets.filter(t => t.author && t.author.username === username);
+
+          if (userTweets.length > 0) {
+            // Sort by time desc to get latest info
+            userTweets.sort((a, b) => Date.parse(b.author.time) - Date.parse(a.author.time));
+            const latest = userTweets[0].author;
+            targetUser = {
+              nickname: latest.nickname,
+              username: latest.username,
+              avatar: latest.avatar,
+              verified: Boolean(latest.verified),
+              // 以下字段因为只存在于 Page 中，这里只能给默认值
+              cover: null, // 将在 renderProfile 中处理为默认
+              bio: '',
+              location: '',
+              website: '',
+              joinDate: '未知时间加入',
+              followers: 0,
+              following: 0,
+              followingList: [],
+            };
+          }
+        }
+
+        // 3. 如果连推文都找不到，则创建一个空的占位
+        if (!targetUser) {
           targetUser = {
             nickname: username,
             username: username,
@@ -1274,7 +1465,7 @@
       // 从楼层加载的数据源，初始为空（如果楼层没有数据则使用此默认值）
       let FEED_SOURCE = `
       [tw|pin001|pin]
-      [p|user_123456|User|https://files.catbox.moe/pcwffp.jpg|1|2025-12-01T12:00:00+08:00|0|0|0|0|0|0|0|0|0]
+      [p|user_123456|User|1|2025-12-01T12:00:00+08:00|0|0|0|0|0|0|0|0|0]
       [txt|关注@辣椒酱 谢谢喵。]
       [/tw]
       `;
@@ -1297,6 +1488,7 @@
         followers: 10010111101,
         following: 1, // 显示用的关注数
         followingList: [], // 实际关注的用户名列表
+        followingDetails: {}, // 关注用户的详细信息 { username: { avatar, cover } }
         verified: true,
         joinDate: '2020年7月加入',
         // 系统时间基准 (时间戳), null 表示使用当前真实时间
@@ -1344,7 +1536,7 @@
         $('#profile-bio-display').text(p.bio || '');
 
         // Avatar & Cover
-        $('#profile-avatar-display').attr('src', isMe ? p.avatar : getDisplayAvatar(p.avatar));
+        $('#profile-avatar-display').attr('src', isMe ? p.avatar : getDisplayAvatar(p.username));
         // 如果没有封面，使用默认或随机图(这里简单处理，如果有cover就用，没有就用默认的占位)
         const coverUrl =
           p.cover || 'https://images.unsplash.com/photo-1504805572947-34fa456d7716?auto=format&fit=crop&w=800&q=80';
@@ -1403,12 +1595,16 @@
           btn.text('已关注');
           btn
             .removeClass('bg-white text-black')
-            .addClass('bg-transparent text-white border border-[var(--app-border)]');
+            .addClass('bg-transparent border')
+            .css('color', 'var(--app-text)')
+            .css('border-color', 'var(--app-border)');
         } else {
           btn.text('关注');
           btn
-            .removeClass('bg-transparent text-white border border-[var(--app-border)]')
-            .addClass('bg-white text-black');
+            .removeClass('bg-transparent border')
+            .addClass('bg-white text-black')
+            .css('color', '')
+            .css('border-color', '');
         }
       }
 
@@ -1419,14 +1615,20 @@
 
         // 初始化列表
         if (!currentUserProfile.followingList) currentUserProfile.followingList = [];
+        if (!currentUserProfile.followingDetails) currentUserProfile.followingDetails = {};
 
         const idx = currentUserProfile.followingList.indexOf(targetUser);
         if (idx !== -1) {
           // 取消关注
           currentUserProfile.followingList.splice(idx, 1);
+          delete currentUserProfile.followingDetails[targetUser];
         } else {
-          // 关注
+          // 关注 - 保存用户名、头像和背景
           currentUserProfile.followingList.push(targetUser);
+          currentUserProfile.followingDetails[targetUser] = {
+            avatar: viewingProfile.avatar || '',
+            cover: viewingProfile.cover || '',
+          };
         }
 
         // 更新按钮 UI
@@ -1434,15 +1636,367 @@
 
         // 保存到世界书
         await saveProfileToWorldbook();
+        await saveSettingsToWorldbook();
       }
 
-      function refreshProfileData() {
+      /**
+       * 在正在关注页面取消关注某用户
+       * @param {string} username 用户名
+       */
+      async function unfollowFromList(username) {
+        if (!currentUserProfile.followingList) return;
+
+        const idx = currentUserProfile.followingList.indexOf(username);
+        if (idx !== -1) {
+          currentUserProfile.followingList.splice(idx, 1);
+          delete currentUserProfile.followingDetails[username];
+
+          // 保存到世界书
+          await saveProfileToWorldbook();
+          await saveSettingsToWorldbook();
+
+          // 重新渲染正在关注页面
+          renderFollowingPage();
+
+          showToast('已取消关注');
+        }
+      }
+
+      /**
+       * 打开正在关注页面
+       */
+      function openFollowingPage() {
+        // 只有在查看自己的主页时才能打开正在关注页面
+        if (viewingProfile && viewingProfile.username !== currentUserProfile.username) {
+          return;
+        }
+        renderFollowingPage();
+        showView('view-following', false);
+      }
+
+      /**
+       * 关闭正在关注页面，返回个人主页
+       */
+      function closeFollowingPage() {
+        // 更新个人主页的关注数显示
+        renderProfile(currentUserProfile);
+        showView('view-profile', true);
+      }
+
+      /**
+       * 渲染正在关注页面
+       */
+      function renderFollowingPage() {
+        const list = currentUserProfile.followingList || [];
+        const details = currentUserProfile.followingDetails || {};
+
+        if (list.length === 0) {
+          $('#following-list').html(`
+            <div class="py-8 text-center text-sm" style="color: var(--app-text-dim)">
+              你还没有关注任何人
+            </div>
+          `);
+          return;
+        }
+
+        const html = list
+          .map(username => {
+            const info = details[username] || {};
+            const avatarUrl = getDisplayAvatar(username);
+
+            return `
+            <div class="flex items-center gap-3 py-3 border-b following-item cursor-pointer hover:bg-white/5" style="border-color: var(--app-border)" data-username="${escapeHtml(
+              username,
+            )}">
+              <img src="${escapeHtml(
+                avatarUrl,
+              )}" class="w-10 h-10 rounded-full cursor-pointer hover:opacity-80 following-avatar" />
+              <div class="flex-1 min-w-0 following-info">
+                <div class="text-sm font-bold truncate" style="color: var(--app-text)">@${escapeHtml(username)}</div>
+              </div>
+              <button
+                class="px-3 py-1.5 text-sm font-bold rounded-full transition hover:bg-red-500/20 border following-unfollow-btn"
+                style="border-color: var(--app-border); color: var(--app-text)"
+              >
+                取消关注
+              </button>
+            </div>
+          `;
+          })
+          .join('');
+
+        $('#following-list').html(html);
+
+        // 绑定事件
+        $('#following-list')
+          .off('click')
+          .on('click', '.following-item', function (e) {
+            const username = $(this).data('username');
+            const target = $(e.target);
+
+            if (target.hasClass('following-avatar')) {
+              // 点击头像 - 打开编辑弹窗
+              e.stopPropagation();
+              openEditFollowingModal(username);
+            } else if (target.hasClass('following-unfollow-btn')) {
+              // 点击取消关注按钮
+              e.stopPropagation();
+              unfollowFromList(username);
+            } else {
+              // 点击其他区域 - 进入用户主页
+              goToProfile(username);
+            }
+          });
+      }
+
+      /**
+       * 打开编辑关注用户信息弹窗
+       */
+      function openEditFollowingModal(username) {
+        const details = currentUserProfile.followingDetails || {};
+        const info = details[username] || {};
+
+        $('#edit-following-username').val(username);
+        $('#edit-following-avatar').val(info.avatar || '');
+        $('#edit-following-cover').val(info.cover || '');
+
+        $('#modal-edit-following').addClass('modal-visible');
+      }
+
+      function closeEditFollowingModal() {
+        $('#modal-edit-following').removeClass('modal-visible');
+      }
+
+      async function confirmEditFollowing() {
+        const username = $('#edit-following-username').val();
+        const avatar = $('#edit-following-avatar').val().trim();
+        const cover = $('#edit-following-cover').val().trim();
+
+        if (!currentUserProfile.followingDetails) {
+          currentUserProfile.followingDetails = {};
+        }
+
+        currentUserProfile.followingDetails[username] = {
+          avatar: avatar || '',
+          cover: cover || '',
+        };
+
+        closeEditFollowingModal();
+
+        // 保存到世界书
+        await saveSettingsToWorldbook();
+
+        // 刷新页面
+        renderFollowingPage();
+
+        showToast('已保存');
+      }
+
+      /**
+       * 打开添加关注用户弹窗
+       */
+      function openAddFollowingModal() {
+        $('#add-following-username').val('');
+        $('#add-following-avatar').val('');
+        $('#add-following-cover').val('');
+
+        $('#modal-add-following').addClass('modal-visible');
+      }
+
+      function closeAddFollowingModal() {
+        $('#modal-add-following').removeClass('modal-visible');
+      }
+
+      async function confirmAddFollowing() {
+        const username = $('#add-following-username').val().trim();
+
+        if (!username) {
+          showToast('请输入用户名');
+          return;
+        }
+
+        // 检查是否已关注
+        if (currentUserProfile.followingList && currentUserProfile.followingList.includes(username)) {
+          showToast('已经关注该用户');
+          return;
+        }
+
+        const avatar = $('#add-following-avatar').val().trim() || 'https://files.catbox.moe/pcwffp.jpg';
+        const cover =
+          $('#add-following-cover').val().trim() ||
+          'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';
+
+        // 初始化列表
+        if (!currentUserProfile.followingList) currentUserProfile.followingList = [];
+        if (!currentUserProfile.followingDetails) currentUserProfile.followingDetails = {};
+
+        // 添加关注
+        currentUserProfile.followingList.push(username);
+        currentUserProfile.followingDetails[username] = {
+          avatar: avatar,
+          cover: cover,
+        };
+
+        closeAddFollowingModal();
+
+        // 保存到世界书
+        await saveProfileToWorldbook();
+        await saveSettingsToWorldbook();
+
+        // 刷新页面
+        renderFollowingPage();
+
+        showToast('已添加关注');
+      }
+
+      // 临时 profile 缓存（不持久化，刷新时覆盖）
+      let tempProfileCache = {};
+
+      /**
+       * 刷新个人主页数据
+       * 调用 generate API 让 AI 生成该用户的推文和资料信息
+       */
+      async function refreshProfileData() {
         if (!viewingProfile) return;
-        // 此处预留刷新逻辑
-        // 目前只刷新一下界面（虽然数据没变）
-        // 以后可以在这里重新扫描聊天记录寻找 [profile] 块
-        showToast('已刷新');
-        renderProfile(viewingProfile);
+
+        const targetUsername = viewingProfile.username;
+
+        // 显示加载遮罩
+        $('#refresh-loading-overlay').removeClass('hidden').addClass('flex');
+        $('#profile-refresh-btn i').addClass('fa-spin');
+
+        try {
+          // 调用 generate API
+          const result = await generate({
+            user_input: `生成${targetUsername}的个人主页，包含推文，回复推文，转发/点赞内容（转推和点赞要生成原始推文。）并额外添加一字段，为[profile|${targetUsername}|{{该用户昵称}}|{{简介内容}}|{{位置信息}}|{{个人网站url}}|{{加入时间}}|following|{{正在关注数}}|{{关注者数}}]`,
+          });
+
+          // 尝试解析返回的内容
+          const parseResult = tryParseProfileContent(result, targetUsername);
+
+          if (parseResult.success) {
+            // 解析成功
+
+            // 1. 合并推文数据到 coreData
+            if (parseResult.feedData) {
+              mergeNewFeedData(parseResult.feedData);
+            }
+
+            // 2. 临时缓存 profile 数据（不持久化）
+            if (parseResult.profileData) {
+              tempProfileCache[targetUsername] = parseResult.profileData;
+
+              // 更新 viewingProfile 以便渲染
+              Object.assign(viewingProfile, parseResult.profileData);
+            }
+
+            // 3. 刷新所有视图
+            refreshAllViews();
+
+            // 4. 重新渲染个人主页
+            renderProfile(viewingProfile);
+
+            // 5. 保存推文数据到酒馆楼层（不包含 profile 临时数据）
+            await saveFeedToTavern(coreData);
+
+            showToast('刷新成功');
+          } else {
+            // 解析失败：显示错误弹窗
+            showParseErrorModal(result);
+          }
+        } catch (error) {
+          console.error('[Twitter] refreshProfileData 出错:', error);
+          showToast('刷新失败');
+        } finally {
+          // 隐藏加载遮罩
+          $('#refresh-loading-overlay').removeClass('flex').addClass('hidden');
+          $('#profile-refresh-btn i').removeClass('fa-spin');
+        }
+      }
+
+      /**
+       * 尝试解析个人主页内容（包含推文和 profile 字段）
+       * @param {string} content - AI 返回的原始内容
+       * @param {string} targetUsername - 目标用户名
+       * @returns {object} { success: boolean, feedData?: { tweetsById, feedEntries }, profileData?: object }
+       */
+      function tryParseProfileContent(content, targetUsername) {
+        if (!content || typeof content !== 'string') {
+          return { success: false };
+        }
+
+        let result = { success: false, feedData: null, profileData: null };
+
+        // 1. 尝试解析 [profile|...] 字段
+        // 格式: [profile|用户名|昵称|简介|位置|网站|加入时间|following|正在关注数|关注者数]
+        const profileMatch = content.match(/\[profile\|([^\]]+)\]/i);
+        if (profileMatch) {
+          const parts = profileMatch[1].split('|');
+          if (parts.length >= 9) {
+            result.profileData = {
+              username: parts[0] || targetUsername,
+              nickname: parts[1] || parts[0] || targetUsername,
+              bio: parts[2] || '',
+              location: parts[3] || '',
+              website: parts[4] || '',
+              joinDate: parts[5] || '',
+              // parts[6] 应该是 "following" 标识符，跳过
+              following: parseInt(parts[7]) || 0,
+              followers: parseInt(parts[8]) || 0,
+            };
+          }
+        }
+
+        // 2. 尝试解析推文内容
+        // 首先尝试提取 [home]...[/home] 块
+        let feedContent = content;
+        const homeMatch = content.match(/\[home\]([\s\S]*?)\[\/home\]/i);
+        if (homeMatch) {
+          feedContent = homeMatch[1].trim();
+        } else {
+          // 如果没有 [home] 块，检查是否有 [X]...[/X] 包裹
+          const xMatch = content.match(/\[x\]([\s\S]*?)\[\/x\]/i);
+          if (xMatch) {
+            const innerHomeMatch = xMatch[1].match(/\[home\]([\s\S]*?)\[\/home\]/i);
+            if (innerHomeMatch) {
+              feedContent = innerHomeMatch[1].trim();
+            } else {
+              feedContent = xMatch[1].trim();
+            }
+          }
+        }
+
+        // 移除 [profile|...] 标签，避免干扰推文解析
+        feedContent = feedContent.replace(/\[profile\|[^\]]+\]/gi, '');
+
+        // 使用现有的解析器解析推文
+        try {
+          const parsed = parseFeedSource(feedContent);
+
+          // 检查是否解析出了有效内容
+          if (
+            (parsed.feedEntries && parsed.feedEntries.length > 0) ||
+            (parsed.tweetsById && Object.keys(parsed.tweetsById).length > 0)
+          ) {
+            result.feedData = parsed;
+          }
+        } catch (e) {
+          console.error('[Twitter] 解析推文失败:', e);
+        }
+
+        // 只要有 profile 或 feed 数据之一就算成功
+        result.success = !!(result.profileData || result.feedData);
+
+        return result;
+      }
+
+      /**
+       * 获取用户的临时 profile 缓存
+       * @param {string} username - 用户名
+       * @returns {object|null} profile 数据或 null
+       */
+      function getTempProfileCache(username) {
+        return tempProfileCache[username] || null;
       }
 
       /**
@@ -1669,15 +2223,68 @@
         'https://i.postimg.cc/fbN5Q4HC/baodi9.jpg',
       ];
 
+      // 头像缓存：确保同一用户名的头像固定不变
+      const avatarCache = {};
+
       function isHttpUrl(value) {
         const text = String(value || '').toLowerCase();
         return text.startsWith('http://') || text.startsWith('https://');
       }
 
-      function getDisplayAvatar(value) {
-        if (isHttpUrl(value)) return value;
-        const idx = Math.floor(Math.random() * FALLBACK_AVATARS.length);
-        return FALLBACK_AVATARS[idx] || '';
+      /**
+       * 根据字符串生成一个简单哈希值（用于固定选择头像）
+       * @param {string} str - 输入字符串
+       * @returns {number} 哈希值
+       */
+      function simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = (hash << 5) - hash + char;
+          hash = hash & hash; // Convert to 32bit integer
+        }
+        return Math.abs(hash);
+      }
+
+      /**
+       * 获取用户的显示头像（只需传入用户名）
+       * 优先级：1. 如果是"我"，用currentUserProfile.avatar
+       *         2. 如果是关注的人，用followingDetails中的头像
+       *         3. 其他人，用基于用户名的固定默认头像
+       * @param {string} username - 用户名
+       * @returns {string} 头像URL
+       */
+      function getDisplayAvatar(username) {
+        if (!username) {
+          // 没有用户名时，使用随机头像（不缓存）
+          const idx = Math.floor(Math.random() * FALLBACK_AVATARS.length);
+          return FALLBACK_AVATARS[idx] || '';
+        }
+
+        // 检查缓存
+        if (avatarCache[username]) {
+          return avatarCache[username];
+        }
+
+        // 1. 如果是"我"，使用 currentUserProfile.avatar
+        if (username === currentUserProfile.username) {
+          if (isHttpUrl(currentUserProfile.avatar)) {
+            avatarCache[username] = currentUserProfile.avatar;
+            return avatarCache[username];
+          }
+        }
+
+        // 2. 如果是关注的人，检查 followingDetails
+        const details = currentUserProfile.followingDetails || {};
+        if (details[username] && isHttpUrl(details[username].avatar)) {
+          avatarCache[username] = details[username].avatar;
+          return avatarCache[username];
+        }
+
+        // 3. 使用基于用户名的哈希选择固定默认头像
+        const idx = simpleHash(username) % FALLBACK_AVATARS.length;
+        avatarCache[username] = FALLBACK_AVATARS[idx];
+        return avatarCache[username];
       }
 
       function getLatestTweetTimeMs() {
@@ -1715,6 +2322,40 @@
         result = result.replace(/\n/g, '<br />');
 
         return result;
+      }
+
+      /**
+       * 更新发帖输入框的高亮显示
+       * 将 @用户名 和 #话题 实时变成蓝色
+       */
+      function updateComposeHighlight() {
+        const textarea = document.getElementById('compose-text');
+        const highlightLayer = document.getElementById('compose-highlight');
+        if (!textarea || !highlightLayer) return;
+
+        const text = textarea.value;
+
+        // 转义 HTML 字符
+        let result = escapeHtml(text);
+
+        // 匹配 @用户名 (遇到空格才停止)
+        result = result.replace(/@([^\s@]+)/g, function (match, p1) {
+          return '<span class="mention">@' + p1 + '</span>';
+        });
+
+        // 匹配 #话题 (遇到空格或#停止)
+        result = result.replace(/#([^\s#]+)/g, function (match, p1) {
+          return '<span class="hashtag">#' + p1 + '</span>';
+        });
+
+        // 换行符转 <br>，并在末尾加一个空格确保最后一行高度正确
+        result = result.replace(/\n/g, '<br>');
+        // 如果文本以换行结尾，需要添加一个占位符确保高亮层高度正确
+        if (text.endsWith('\n') || text === '') {
+          result += '&nbsp;';
+        }
+
+        highlightLayer.innerHTML = result;
       }
 
       function formatRelativeTime(iso) {
@@ -1961,7 +2602,9 @@
         return `
                       <div class="quote-box" onclick="event.stopPropagation();">
                         <div class="flex items-center gap-1 text-sm mb-1">
-                          <img src="${escapeHtml(getDisplayAvatar(quote.author.avatar))}" class="w-4 h-4 rounded-full" />
+                          <img src="${escapeHtml(
+                            getDisplayAvatar(quote.author.username),
+                          )}" class="w-4 h-4 rounded-full" />
                           <span class="font-bold">${escapeHtml(quote.author.nickname)}</span>
                           ${renderVerified(quote.author.verified)}
                           <span class="text-gray-500 text-xs">@${escapeHtml(quote.author.username)}</span>
@@ -2079,32 +2722,34 @@
 
           if (tag === 'p') {
             if (section === 'quote') {
+              // 引用推文属性：用户名|昵称|认证
               current.quote.author = {
                 username: parts[1],
                 nickname: parts[2],
-                avatar: parts[3],
-                verified: Number(parts[4]) || 0,
+                avatar: '', // 头像由 getDisplayAvatar 提供默认值
+                verified: Number(parts[3]) || 0,
               };
             } else {
+              // 主推文属性：用户名|昵称|认证|时间|转推|点赞|评论|浏览|书签|禁评|已赞|已转|已藏
               current.author = {
                 username: parts[1],
                 nickname: parts[2],
-                avatar: parts[3],
-                verified: Number(parts[4]) || 0,
-                time: parts[5],
+                avatar: '', // 头像由 getDisplayAvatar 提供默认值
+                verified: Number(parts[3]) || 0,
+                time: parts[4],
               };
               current.stats = {
-                retweets: parts[6] || '0',
-                likes: parts[7] || '0',
-                replies: parts[8] || '0',
-                views: parts[9] || '0',
-                bookmarks: parts[10] || '0',
+                retweets: parts[5] || '0',
+                likes: parts[6] || '0',
+                replies: parts[7] || '0',
+                views: parts[8] || '0',
+                bookmarks: parts[9] || '0',
               };
               current.flags = {
-                disableReply: Number(parts[11]) === 1,
-                likedByMe: Number(parts[12]) === 1,
-                retweetedByMe: Number(parts[13]) === 1,
-                bookmarkedByMe: Number(parts[14]) === 1,
+                disableReply: Number(parts[10]) === 1,
+                likedByMe: Number(parts[11]) === 1,
+                retweetedByMe: Number(parts[12]) === 1,
+                bookmarkedByMe: Number(parts[13]) === 1,
               };
             }
             continue;
@@ -2180,14 +2825,14 @@
         function serializeTweetContent(tweet) {
           const content = [];
 
-          // [p|...] 属性行
+          // [p|...] 属性行（不含头像）
           const a = tweet.author;
           const s = tweet.stats || {};
           const f = tweet.flags || {};
           content.push(
-            `[p|${a.username}|${a.nickname}|${a.avatar}|${a.verified ? 1 : 0}|${a.time || ''}|${s.retweets || 0}|${
-              s.likes || 0
-            }|${s.replies || 0}|${s.views || 0}|${s.bookmarks || 0}|${f.disableReply ? 1 : 0}|${f.likedByMe ? 1 : 0}|${
+            `[p|${a.username}|${a.nickname}|${a.verified ? 1 : 0}|${a.time || ''}|${s.retweets || 0}|${s.likes || 0}|${
+              s.replies || 0
+            }|${s.views || 0}|${s.bookmarks || 0}|${f.disableReply ? 1 : 0}|${f.likedByMe ? 1 : 0}|${
               f.retweetedByMe ? 1 : 0
             }|${f.bookmarkedByMe ? 1 : 0}]`,
           );
@@ -2229,9 +2874,7 @@
           if (tweet.quote) {
             const q = tweet.quote;
             content.push('[qt]');
-            content.push(
-              `[p|${q.author.username}|${q.author.nickname}|${q.author.avatar}|${q.author.verified ? 1 : 0}]`,
-            );
+            content.push(`[p|${q.author.username}|${q.author.nickname}|${q.author.verified ? 1 : 0}]`);
             if (q.text) content.push(`[txt|${q.text}]`);
             if (q.images && q.images.length > 0) {
               const qImgTag = q.imagesSensitive ? 'img.block' : 'img';
@@ -2485,7 +3128,7 @@
                         <div class="tweet-body">
                           <div class="shrink-0">
                             <img src="${escapeHtml(
-                              getDisplayAvatar(tweet.author.avatar),
+                              getDisplayAvatar(tweet.author.username),
                             )}" class="avatar-tweet rounded-full hover:opacity-80" />
                           </div>
                           <div class="flex-1 min-w-0">
@@ -2535,7 +3178,7 @@
                         <div class="flex gap-3 cursor-pointer" data-tweet-id="${escapeHtml(parent.id)}">
                           <div class="shrink-0 flex flex-col items-center avatar-col">
                             <img src="${escapeHtml(
-                              getDisplayAvatar(parent.author.avatar),
+                              getDisplayAvatar(parent.author.username),
                             )}" class="avatar-tweet rounded-full hover:opacity-80 z-10" />
                             <div class="w-0.5 grow -mb-1" style="background-color: var(--app-border)"></div>
                           </div>
@@ -2604,7 +3247,7 @@
                           <div class="flex gap-3 cursor-pointer" data-tweet-id="${escapeHtml(tweet.id)}">
                             <div class="shrink-0">
                               <img src="${escapeHtml(
-                                getDisplayAvatar(tweet.author.avatar),
+                                getDisplayAvatar(tweet.author.username),
                               )}" class="avatar-tweet rounded-full hover:opacity-80" />
                             </div>
                             <div class="flex-1 min-w-0">
@@ -2765,7 +3408,7 @@
                       <div class="flex gap-3 cursor-pointer ancestor-row" data-tweet-id="${escapeHtml(tweet.id)}">
                         <div class="shrink-0 flex flex-col items-center avatar-col">
                           <img src="${escapeHtml(
-                            getDisplayAvatar(tweet.author.avatar),
+                            getDisplayAvatar(tweet.author.username),
                           )}" class="avatar-tweet rounded-full hover:opacity-80 z-10" />
                           ${
                             hasLineDown
@@ -2832,7 +3475,7 @@
                         <div class="tweet-body">
                           <div class="shrink-0">
                             <img src="${escapeHtml(
-                              getDisplayAvatar(tweet.author.avatar),
+                              getDisplayAvatar(tweet.author.username),
                             )}" class="avatar-tweet rounded-full hover:opacity-80" />
                           </div>
                           <div class="flex-1 min-w-0">
@@ -2912,7 +3555,7 @@
         const detailHtml = `
                       <div class="flex gap-3">
                         <img src="${escapeHtml(
-                          getDisplayAvatar(tweet.author.avatar),
+                          getDisplayAvatar(tweet.author.username),
                         )}" class="avatar-tweet rounded-full" alt="${escapeHtml(tweet.author.nickname)}" />
                         <div class="flex-1">
                           <div class="flex items-start justify-between">
@@ -3094,9 +3737,7 @@
               .split('\n')
               .map(s => s.trim())
               .filter(Boolean);
-        const systemBaseTimeValue = profileData.systemBaseTime
-          ? new Date(profileData.systemBaseTime).getTime()
-          : null;
+        const systemBaseTimeValue = profileData.systemBaseTime ? new Date(profileData.systemBaseTime).getTime() : null;
 
         return {
           nickname: profileData.nickname || '',
@@ -3125,6 +3766,8 @@
           avatar: p.avatar || '',
           cover: p.cover || '',
           lightMode: !!s.lightMode,
+          // 关注用户的详细信息（头像、背景）
+          followingDetails: p.followingDetails || {},
         };
 
         const settingsJson = JSON.stringify(settingsData, null, 2);
@@ -3160,6 +3803,8 @@
           avatar: settingsData.avatar || '',
           cover: settingsData.cover || '',
           lightMode: settingsData.lightMode === true || settingsData.lightMode === 'true',
+          // 关注用户的详细信息
+          followingDetails: settingsData.followingDetails || {},
         };
       }
 
@@ -3228,6 +3873,7 @@
             if (parsed) {
               currentUserProfile.avatar = parsed.avatar || currentUserProfile.avatar;
               currentUserProfile.cover = parsed.cover || currentUserProfile.cover;
+              currentUserProfile.followingDetails = parsed.followingDetails || {};
               systemSettings.lightMode = parsed.lightMode;
               console.log('[Twitter] 已加载系统设置');
             }
@@ -3289,7 +3935,7 @@
 
 内容标签介绍：
 - 以下为推文/回复内部可用的内容标签：
-  - 属性（必须）：[p|{{用户名，不需要加@，每个用户的用户名不可变化}}|{{昵称，可以随时随意改变}}|{{头像URL，禁止捏造,没有提供时填无}}|{{是否为认证账号0/1}}|{{ISO时间}}|{{转推数}}|{{点赞数}}|{{评论数}}|{{浏览量}}|{{书签数}}|{{禁评0/1}}|{{<user>是否点赞0/1}}|{{<user>是否转推0/1}}|{{<user>是否收藏0/1}}]
+- 属性（必须）：[p|{{用户名，不需要加@，每个用户的用户名不可变化，中英文不限}}|{{昵称，可以随时随意改变，中英文不限}}|{{是否为认证账号0/1}}|{{ISO时间}}|{{转推数}}|{{点赞数}}|{{评论数}}|{{浏览量}}|{{书签数}}|{{禁评0/1}}|{{<user>是否点赞0/1}}|{{<user>是否转推0/1}}|{{<user>是否收藏0/1}}]
   - 文字内容：[txt|{{文字内容，支持换行，emoji，颜文字等}}]
   - 图片（可多张）：[img|{{图片描述1}}|{{图片描述2}}|...]
   - 视频：[vid|{{视频描述}}|{{视频时长}}]
@@ -3339,9 +3985,8 @@
 格式规范：
 - 一次回复只能回复一组[X][home][/home][/X]标签。
 - **绝对禁止遗漏任何闭合标签**。
-- 未提供头像URL使用时，请在字段里直接填写“无”。
 - 使用转推[rt]和喜欢[like]时，必须先生成原始推文及其ID。
-- 引用[qt]内的属性仅需4个字段：用户名、昵称、头像、认证。
+- 引用[qt]内的属性仅需3个字段：用户名、昵称、认证。
 - 推文回复[re]不可使用引用[qt]和投票[poll]。
 - 单张图片发送格式为：[img|{{图片描述1}}]
 - 禁评=1时，只有推文作者自己能回复。
@@ -3581,13 +4226,9 @@
           goBack();
         });
 
-        // 刷新按钮动画
-        $('#refresh-btn').click(function () {
-          const btn = $(this);
-          btn.removeClass('fa-spin');
-          void btn[0].offsetWidth;
-          btn.addClass('fa-spin');
-          setTimeout(() => btn.removeClass('fa-spin'), 1000);
+        // 刷新按钮 - 调用 generate API
+        $('#refresh-btn').click(async function () {
+          await refreshHomeFeed();
         });
 
         // 日夜模式切换
@@ -3926,6 +4567,7 @@
 
         // Reset UI
         $('#compose-text').val('');
+        $('#compose-highlight').empty(); // 清空高亮层
         $('#compose-user-avatar').attr('src', currentUserProfile.avatar);
         $('#compose-media-preview').empty();
         $('#compose-quote-preview').empty(); // Clear quote preview
@@ -4330,5 +4972,209 @@
           // 普通发帖：返回首页
           closeCompose();
         }
+      }
+
+      // ========== 刷新首页功能 ==========
+
+      // 存储解析失败的内容
+      let parseErrorContent = '';
+
+      /**
+       * 刷新首页信息流
+       * 调用 generate API 让 AI 生成新推文，然后解析并合并到当前数据中
+       */
+      async function refreshHomeFeed() {
+        // 显示加载遮罩
+        $('#refresh-loading-overlay').removeClass('hidden').addClass('flex');
+        $('#refresh-btn').addClass('fa-spin');
+
+        try {
+          // 调用 generate API
+          const result = await generate({
+            user_input: '刷新主页，增加新的推文。注意对{{user}}最新的推文以及回复做出回应。',
+          });
+
+          // 尝试解析返回的内容
+          const parseResult = tryParseGeneratedContent(result);
+
+          if (parseResult.success) {
+            // 解析成功：合并新数据到 coreData
+            mergeNewFeedData(parseResult.data);
+
+            // 刷新视图并滚动到顶部
+            refreshAllViews();
+            $('#view-home').scrollTop(0);
+
+            // 保存到酒馆楼层
+            await saveFeedToTavern(coreData);
+
+            showToast('刷新成功');
+          } else {
+            // 解析失败：显示错误弹窗
+            showParseErrorModal(result);
+          }
+        } catch (error) {
+          console.error('[Twitter] refreshHomeFeed 出错:', error);
+          showToast('刷新失败');
+        } finally {
+          // 隐藏加载遮罩
+          $('#refresh-loading-overlay').removeClass('flex').addClass('hidden');
+          $('#refresh-btn').removeClass('fa-spin');
+        }
+      }
+
+      /**
+       * 尝试解析 AI 生成的内容
+       * @param {string} content - AI 返回的原始内容
+       * @returns {object} { success: boolean, data?: { tweetsById, feedEntries } }
+       */
+      function tryParseGeneratedContent(content) {
+        if (!content || typeof content !== 'string') {
+          return { success: false };
+        }
+
+        // 首先尝试提取 [home]...[/home] 块（如果 AI 返回了完整格式）
+        let feedContent = content;
+        const homeMatch = content.match(/\[home\]([\s\S]*?)\[\/home\]/i);
+        if (homeMatch) {
+          feedContent = homeMatch[1].trim();
+        }
+
+        // 如果还是空的，检查是否有 [X]...[/X] 包裹
+        if (!feedContent.trim()) {
+          const xMatch = content.match(/\[x\]([\s\S]*?)\[\/x\]/i);
+          if (xMatch) {
+            const innerHomeMatch = xMatch[1].match(/\[home\]([\s\S]*?)\[\/home\]/i);
+            if (innerHomeMatch) {
+              feedContent = innerHomeMatch[1].trim();
+            }
+          }
+        }
+
+        // 如果提取后仍然为空，直接使用原始内容
+        if (!feedContent.trim()) {
+          feedContent = content.trim();
+        }
+
+        // 使用现有的解析器解析
+        try {
+          const parsed = parseFeedSource(feedContent);
+
+          // 检查是否解析出了有效内容
+          if (
+            (parsed.feedEntries && parsed.feedEntries.length > 0) ||
+            (parsed.tweetsById && Object.keys(parsed.tweetsById).length > 0)
+          ) {
+            return { success: true, data: parsed };
+          } else {
+            return { success: false };
+          }
+        } catch (e) {
+          console.error('[Twitter] 解析失败:', e);
+          return { success: false };
+        }
+      }
+
+      /**
+       * 合并新的推文数据到 coreData
+       * @param {object} newData - { tweetsById, feedEntries }
+       */
+      function mergeNewFeedData(newData) {
+        const { tweetsById: newTweets, feedEntries: newEntries } = newData;
+
+        // 合并 tweetsById（新的覆盖旧的，或者添加新的）
+        for (const id in newTweets) {
+          coreData.tweetsById[id] = newTweets[id];
+        }
+
+        // 合并 feedEntries（新的加在前面，避免重复）
+        const existingIds = new Set();
+        coreData.feedEntries.forEach(entry => {
+          if (entry.type === 'tweet') {
+            existingIds.add(entry.id);
+          } else if (entry.type === 'status') {
+            existingIds.add(`${entry.statusType}_${entry.user}_${entry.targetId}`);
+          }
+        });
+
+        // 将新条目加到前面（倒序遍历以保持顺序）
+        for (let i = newEntries.length - 1; i >= 0; i--) {
+          const entry = newEntries[i];
+          let entryKey = '';
+          if (entry.type === 'tweet') {
+            entryKey = entry.id;
+          } else if (entry.type === 'status') {
+            entryKey = `${entry.statusType}_${entry.user}_${entry.targetId}`;
+          }
+
+          if (!existingIds.has(entryKey)) {
+            coreData.feedEntries.unshift(entry);
+            existingIds.add(entryKey);
+          }
+        }
+
+        // 重建 feedList
+        feedList = buildFeedList(coreData);
+      }
+
+      /**
+       * 显示解析失败弹窗
+       * @param {string} content - 解析失败的原始内容
+       */
+      function showParseErrorModal(content) {
+        parseErrorContent = content;
+        $('#parse-error-content').text(content);
+        $('#modal-parse-error').addClass('modal-visible');
+      }
+
+      /**
+       * 关闭解析失败弹窗
+       */
+      function closeParseErrorModal() {
+        $('#modal-parse-error').removeClass('modal-visible');
+        parseErrorContent = '';
+      }
+
+      /**
+       * 复制解析失败的内容到剪贴板
+       */
+      function copyParseErrorContent() {
+        if (!parseErrorContent) return;
+
+        // 尝试使用现代 API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(parseErrorContent)
+            .then(() => {
+              showToast('已复制到剪贴板');
+            })
+            .catch(err => {
+              console.error('[Twitter] 复制失败:', err);
+              fallbackCopyText(parseErrorContent);
+            });
+        } else {
+          fallbackCopyText(parseErrorContent);
+        }
+      }
+
+      /**
+       * 备用复制方法（兼容旧浏览器）
+       * @param {string} text - 要复制的文本
+       */
+      function fallbackCopyText(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          showToast('已复制到剪贴板');
+        } catch (e) {
+          showToast('复制失败');
+        }
+        document.body.removeChild(textarea);
       }
     </script>
