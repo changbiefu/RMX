@@ -10,6 +10,7 @@
       rel="stylesheet"
       href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
     />
+
     <style type="text/tailwindcss">
       /* === 1. 颜色变量 === */
       :root {
@@ -396,6 +397,7 @@
       }
     </style>
   </head>
+
     <div id="app-wrapper" class="app-wrapper">
       <div id="app-box" class="app-container">
         <!-- =======================
@@ -424,7 +426,7 @@
                 为您推荐
                 <div class="tab-indicator"></div>
               </div>
-              <div class="tab-item" onclick="switchTab(this, 'home-feed-following')">
+              <div class="tab-item" onclick="switchTab(this, 'home-feed-following'); renderFollowingFeed()">
                 正在关注
                 <div class="tab-indicator"></div>
               </div>
@@ -493,28 +495,37 @@
               <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
                 <input
+                  id="search-input"
                   type="text"
                   placeholder="搜索"
                   class="bg-transparent outline-none w-full"
                   style="color: var(--app-text)"
                 />
               </div>
-              <div class="w-8 flex justify-end" style="color: var(--app-text-dim)">
-                <i class="fa-solid fa-gear"></i>
+              <div class="w-auto flex justify-end shrink-0">
+                <div
+                  class="font-bold text-sm cursor-pointer hover:bg-white/10 px-3 py-1.5 rounded-full transition whitespace-nowrap"
+                  onclick="executeSearch()"
+                >
+                  搜索
+                </div>
               </div>
             </div>
-            <div class="tab-row">
-              <div class="tab-item tab-active">
-                为您推荐
-                <div class="tab-indicator"></div>
+            <!-- Static Content Wrapper -->
+            <div id="search-static-content">
+              <div class="tab-row">
+                <div class="tab-item tab-active">
+                  为您推荐
+                  <div class="tab-indicator"></div>
+                </div>
+                <div class="tab-item">趋势</div>
+                <div class="tab-item">新闻</div>
+                <div class="tab-item">体育</div>
               </div>
-              <div class="tab-item">趋势</div>
-              <div class="tab-item">新闻</div>
-              <div class="tab-item">体育</div>
             </div>
           </header>
 
-          <div class="p-4">
+          <div id="search-static-body" class="p-4">
             <h2 class="font-bold text-lg mb-4">趋势</h2>
             <div class="space-y-5">
               <div class="cursor-pointer hover:bg-white/5 -mx-4 px-4 py-2">
@@ -534,6 +545,11 @@
                 <div class="text-xs text-gray-500 mt-0.5">5,432 帖子</div>
               </div>
             </div>
+          </div>
+
+          <!-- Search Results Container -->
+          <div id="search-results-list" class="hidden pb-20">
+            <!-- Results will be rendered here -->
           </div>
         </div>
 
@@ -586,9 +602,17 @@
               <div
                 id="profile-refresh-btn"
                 class="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/70 backdrop-blur-sm hidden"
-                onclick="refreshProfileData()"
+                onclick="openRefreshConfirmModal('profile')"
               >
                 <i class="fa-solid fa-rotate-right"></i>
+              </div>
+              <!-- 自己的主页：设置按钮 -->
+              <div
+                id="profile-settings-btn"
+                class="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-black/70 backdrop-blur-sm hidden"
+                onclick="openSettingsPage()"
+              >
+                <i class="fa-solid fa-gear"></i>
               </div>
             </div>
 
@@ -747,7 +771,8 @@
               </button>
               <div class="font-bold text-lg ml-4 flex-1">编辑个人资料</div>
               <button
-                class="bg-white text-black px-4 py-1.5 max-[320px]:px-3 max-[320px]:py-1 rounded-full font-bold text-sm hover:opacity-90 transition"
+                class="px-4 py-1.5 max-[320px]:px-3 max-[320px]:py-1 rounded-full font-bold text-sm hover:opacity-90 transition"
+                style="background-color: var(--app-text); color: var(--app-bg)"
                 onclick="saveProfile()"
               >
                 保存
@@ -841,6 +866,89 @@
                     <div class="text-xs mt-1 opacity-60">此时间将用于计算"刚刚"、"1小时前"等相对时间。</div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =======================
+             VIEW 8: 设置 (Settings)
+             ======================= -->
+        <div id="view-settings" class="view-container hidden z-50 bg-[var(--app-bg)]">
+          <header class="sticky-header">
+            <div class="header-row">
+              <button
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                onclick="closeSettingsPage()"
+              >
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div class="font-bold text-lg ml-4 flex-1">设置</div>
+            </div>
+          </header>
+
+          <div class="p-4 space-y-6">
+            <!-- 首页刷新确认 -->
+            <div class="border-b pb-4" style="border-color: var(--app-border)">
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-bold text-sm">首页刷新确认</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="settings-home-refresh-confirm" class="sr-only peer" checked />
+                  <div
+                    class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
+                  ></div>
+                </label>
+              </div>
+              <div class="text-xs mb-2" style="color: var(--app-text-dim)">
+                开启后点击刷新会弹出确认窗口，关闭则直接使用下方指令刷新
+              </div>
+              <textarea
+                id="settings-home-refresh-command"
+                class="edit-textarea w-full"
+                style="resize: both; min-height: 60px; max-height: 40vh"
+                placeholder="首页刷新指令..."
+              ></textarea>
+            </div>
+
+            <!-- 个人主页刷新确认 -->
+            <div class="border-b pb-4" style="border-color: var(--app-border)">
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-bold text-sm">个人主页刷新确认</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="settings-profile-refresh-confirm" class="sr-only peer" checked />
+                  <div
+                    class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
+                  ></div>
+                </label>
+              </div>
+              <div class="text-xs mb-2" style="color: var(--app-text-dim)">
+                开启后点击刷新会弹出确认窗口，关闭则直接使用下方指令刷新
+              </div>
+              <textarea
+                id="settings-profile-refresh-command"
+                class="edit-textarea w-full"
+                style="resize: both; min-height: 60px; max-height: 40vh"
+                placeholder="个人主页刷新指令..."
+              ></textarea>
+            </div>
+
+            <!-- 随机头像列表 -->
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-bold text-sm">随机头像列表</span>
+                <button
+                  class="w-8 h-8 rounded-full flex items-center justify-center transition hover:bg-white/10"
+                  style="color: var(--app-accent)"
+                  onclick="addFallbackAvatar()"
+                >
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <div class="text-xs mb-3" style="color: var(--app-text-dim)">
+                当用户没有设置头像时，将从此列表中随机选择一个
+              </div>
+              <div id="fallback-avatar-list" class="space-y-2">
+                <!-- 由 JS 动态渲染 -->
               </div>
             </div>
           </div>
@@ -1318,7 +1426,8 @@
                 <i class="fa-regular fa-copy mr-1"></i>复制
               </button>
               <button
-                class="px-4 py-1.5 rounded-full text-sm font-bold bg-white text-black hover:opacity-90 transition"
+                class="px-4 py-1.5 rounded-full text-sm font-bold hover:opacity-90 transition"
+                style="background-color: var(--app-text); color: var(--app-bg)"
                 onclick="closeParseErrorModal()"
               >
                 确认
@@ -1327,15 +1436,36 @@
           </div>
         </div>
 
-        <!-- 刷新加载遮罩 -->
-        <div
-          id="refresh-loading-overlay"
-          class="absolute inset-0 z-[70] bg-black/50 hidden flex-col items-center justify-center backdrop-blur-sm"
-        >
-          <div class="text-4xl text-white mb-4">
-            <i class="fa-solid fa-rotate-right fa-spin"></i>
+        <!-- 刷新确认弹窗 -->
+        <div id="modal-refresh-confirm" class="modal-overlay">
+          <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">确认刷新指令</h3>
+            <div class="edit-input-group mb-0">
+              <label class="edit-input-label">生成指令</label>
+              <textarea
+                id="refresh-command-input"
+                class="edit-textarea h-32"
+                style="resize: both; min-height: 80px; max-height: 50vh"
+                placeholder="输入刷新指令..."
+              ></textarea>
+            </div>
+            <div class="flex justify-end gap-3 mt-4">
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold border hover:bg-white/10 transition"
+                style="border-color: var(--app-border)"
+                onclick="closeRefreshConfirmModal()"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-1.5 rounded-full text-sm font-bold hover:opacity-90 transition"
+                style="background-color: var(--app-text); color: var(--app-bg)"
+                onclick="confirmRefresh()"
+              >
+                确认刷新
+              </button>
+            </div>
           </div>
-          <div class="text-sm text-white">正在刷新，请稍候...</div>
         </div>
       </div>
     </div>
@@ -1503,7 +1633,20 @@
       // 系统设置状态（存储于"推特系统设置"条目）
       let systemSettings = {
         lightMode: false, // 是否为日间模式
+        homeRefreshConfirm: true, // 首页刷新确认开关
+        profileRefreshConfirm: true, // 个人主页刷新确认开关
+        fallbackAvatars: [], // 自定义随机头像列表，空时使用默认列表
       };
+
+      // 生成指令状态（存储于"推特生成指令"条目）
+      let generateCommands = {
+        homeRefresh: '刷新主页，增加新的推文。注意对{{user}}最新的推文以及回复做出回应。',
+        profileRefresh:
+          '生成{{username}}的个人主页，包含推文，回复推文，转发/点赞内容（转推和点赞要生成原始推文。）并额外添加一字段，为[profile|{{username}}|{{该用户昵称}}|{{简介内容}}|{{位置信息}}|{{个人网站url}}|{{加入时间}}|following|{{正在关注数}}|{{关注者数}}]',
+      };
+
+      // 当前刷新类型（'home' 或 'profile'）
+      let pendingRefreshType = null;
 
       /**
        * 渲染个人资料页面
@@ -1518,11 +1661,13 @@
         // UI 切换：自己 vs 别人
         if (isMe) {
           $('#profile-edit-btn').removeClass('hidden');
+          $('#profile-settings-btn').removeClass('hidden');
           $('#profile-msg-btn').addClass('hidden');
           $('#profile-follow-btn').addClass('hidden');
           $('#profile-refresh-btn').addClass('hidden');
         } else {
           $('#profile-edit-btn').addClass('hidden');
+          $('#profile-settings-btn').addClass('hidden');
           $('#profile-msg-btn').removeClass('hidden');
           $('#profile-follow-btn').removeClass('hidden');
           $('#profile-refresh-btn').removeClass('hidden');
@@ -1853,68 +1998,6 @@
       let tempProfileCache = {};
 
       /**
-       * 刷新个人主页数据
-       * 调用 generate API 让 AI 生成该用户的推文和资料信息
-       */
-      async function refreshProfileData() {
-        if (!viewingProfile) return;
-
-        const targetUsername = viewingProfile.username;
-
-        // 显示加载遮罩
-        $('#refresh-loading-overlay').removeClass('hidden').addClass('flex');
-        $('#profile-refresh-btn i').addClass('fa-spin');
-
-        try {
-          // 调用 generate API
-          const result = await generate({
-            user_input: `生成${targetUsername}的个人主页，包含推文，回复推文，转发/点赞内容（转推和点赞要生成原始推文。）并额外添加一字段，为[profile|${targetUsername}|{{该用户昵称}}|{{简介内容}}|{{位置信息}}|{{个人网站url}}|{{加入时间}}|following|{{正在关注数}}|{{关注者数}}]`,
-          });
-
-          // 尝试解析返回的内容
-          const parseResult = tryParseProfileContent(result, targetUsername);
-
-          if (parseResult.success) {
-            // 解析成功
-
-            // 1. 合并推文数据到 coreData
-            if (parseResult.feedData) {
-              mergeNewFeedData(parseResult.feedData);
-            }
-
-            // 2. 临时缓存 profile 数据（不持久化）
-            if (parseResult.profileData) {
-              tempProfileCache[targetUsername] = parseResult.profileData;
-
-              // 更新 viewingProfile 以便渲染
-              Object.assign(viewingProfile, parseResult.profileData);
-            }
-
-            // 3. 刷新所有视图
-            refreshAllViews();
-
-            // 4. 重新渲染个人主页
-            renderProfile(viewingProfile);
-
-            // 5. 保存推文数据到酒馆楼层（不包含 profile 临时数据）
-            await saveFeedToTavern(coreData);
-
-            showToast('刷新成功');
-          } else {
-            // 解析失败：显示错误弹窗
-            showParseErrorModal(result);
-          }
-        } catch (error) {
-          console.error('[Twitter] refreshProfileData 出错:', error);
-          showToast('刷新失败');
-        } finally {
-          // 隐藏加载遮罩
-          $('#refresh-loading-overlay').removeClass('flex').addClass('hidden');
-          $('#profile-refresh-btn i').removeClass('fa-spin');
-        }
-      }
-
-      /**
        * 尝试解析个人主页内容（包含推文和 profile 字段）
        * @param {string} content - AI 返回的原始内容
        * @param {string} targetUsername - 目标用户名
@@ -2066,6 +2149,8 @@
           .map(e => ({
             tweet: tweetsById[e.targetId],
             time: Date.parse(tweetsById[e.targetId]?.author?.time) || 0,
+            likeUser: e.user,
+            likeNick: e.nick,
           }))
           .filter(item => item.tweet)
           .sort((a, b) => b.time - a.time);
@@ -2123,7 +2208,15 @@
 
         // 渲染喜欢标签页
         if (likes.length > 0) {
-          const likesHtml = likes.map(item => renderTweetCard(item.tweet, null)).join('');
+          const likesHtml = likes
+            .map(item =>
+              renderTweetCard(item.tweet, {
+                statusType: 'like',
+                user: item.likeUser,
+                nick: item.likeNick,
+              }),
+            )
+            .join('');
           $('#profile-tab-likes').html(likesHtml);
         } else {
           $('#profile-tab-likes').html(emptyHtml);
@@ -2210,7 +2303,7 @@
         return Date.now();
       }
 
-      const FALLBACK_AVATARS = [
+      const DEFAULT_FALLBACK_AVATARS = [
         'https://i.postimg.cc/pdHkMN0d/baodi1.jpg',
         'https://i.postimg.cc/43gwRC85/baodi10.jpg',
         'https://i.postimg.cc/mrsVWxd9/baodi2.jpg',
@@ -2222,6 +2315,17 @@
         'https://i.postimg.cc/tgNkXrfV/baodi8.jpg',
         'https://i.postimg.cc/fbN5Q4HC/baodi9.jpg',
       ];
+
+      /**
+       * 获取随机头像列表（优先使用自定义列表，为空时使用默认列表）
+       * @returns {string[]} 头像URL数组
+       */
+      function getFallbackAvatars() {
+        if (systemSettings.fallbackAvatars && systemSettings.fallbackAvatars.length > 0) {
+          return systemSettings.fallbackAvatars;
+        }
+        return DEFAULT_FALLBACK_AVATARS;
+      }
 
       // 头像缓存：确保同一用户名的头像固定不变
       const avatarCache = {};
@@ -2255,10 +2359,12 @@
        * @returns {string} 头像URL
        */
       function getDisplayAvatar(username) {
+        const fallbackList = getFallbackAvatars();
+
         if (!username) {
           // 没有用户名时，使用随机头像（不缓存）
-          const idx = Math.floor(Math.random() * FALLBACK_AVATARS.length);
-          return FALLBACK_AVATARS[idx] || '';
+          const idx = Math.floor(Math.random() * fallbackList.length);
+          return fallbackList[idx] || '';
         }
 
         // 检查缓存
@@ -2282,8 +2388,8 @@
         }
 
         // 3. 使用基于用户名的哈希选择固定默认头像
-        const idx = simpleHash(username) % FALLBACK_AVATARS.length;
-        avatarCache[username] = FALLBACK_AVATARS[idx];
+        const idx = simpleHash(username) % fallbackList.length;
+        avatarCache[username] = fallbackList[idx];
         return avatarCache[username];
       }
 
@@ -3145,6 +3251,17 @@
                               </div>
                             </div>
                             ${
+                              tweet.type === 're' && tweet.replyTo
+                                ? (() => {
+                                    const parent = coreData.tweetsById[tweet.replyTo];
+                                    const parentUsername = parent?.author?.username || 'unknown';
+                                    return `<div class="text-sm" style="color: var(--app-text-dim)">回复 <span class="text-blue-400">@${escapeHtml(
+                                      parentUsername,
+                                    )}</span></div>`;
+                                  })()
+                                : ''
+                            }
+                            ${
                               tweet.text
                                 ? `<div class="mt-1 text-sm leading-normal whitespace-pre-wrap">${formatText(
                                     tweet.text,
@@ -3325,6 +3442,181 @@
       }
 
       /**
+       * 渲染正在关注信息流
+       * 包含关注用户的: 推文, 回复, 转推, 喜欢
+       */
+      function renderFollowingFeed() {
+        const followingList = currentUserProfile.followingList || [];
+
+        // 如果没有关注的人
+        if (followingList.length === 0) {
+          $('#feed-following-list').html(`
+            <div class="py-12 text-center text-sm" style="color: var(--app-text-dim)">
+              你还没有关注任何人<br>去关注一些有趣的人吧！
+            </div>
+          `);
+          return;
+        }
+
+        let allActivities = [];
+
+        // 遍历关注列表，重用 getUserProfileData 获取数据
+        followingList.forEach(username => {
+          // getUserProfileData 返回 { posts, replies, media, likes }
+          // posts 包含了 tw 和 rt (已按时间排序，包含置顶，这里需要混排所以置顶属性仅作为展示)
+          const data = getUserProfileData(username);
+
+          // 1. 帖子 (tw & rt)
+          data.posts.forEach(item => {
+            // 确保都有 time 字段
+            allActivities.push(item);
+          });
+
+          // 2. 回复 (re) - data.replies 是 tweet 对象列表
+          data.replies.forEach(tweet => {
+            allActivities.push({
+              type: 're',
+              tweet: tweet,
+              time: Date.parse(tweet.author?.time) || 0,
+            });
+          });
+
+          // 3. 喜欢 (like) - data.likes 是包装好的对象
+          data.likes.forEach(item => {
+            allActivities.push({
+              type: 'like',
+              tweet: item.tweet,
+              time: item.time,
+              likeUser: item.likeUser,
+              likeNick: item.likeNick,
+            });
+          });
+        });
+
+        // 整体按时间倒序排序 (最新的在前)
+        allActivities.sort((a, b) => b.time - a.time);
+
+        // 如果没有内容
+        if (allActivities.length === 0) {
+          $('#feed-following-list').html(`
+            <div class="py-12 text-center text-sm" style="color: var(--app-text-dim)">
+              你关注的人最近好像很安静...
+            </div>
+          `);
+          return;
+        }
+
+        // 渲染 HTML
+        const html = allActivities
+          .map(item => {
+            if (item.type === 'tw') {
+              // 对于关注流，置顶推文依然显示置顶标记，但不再强制置顶到最顶部（因为是聚合流）
+              return renderTweetCard(item.tweet, item.tweet.pin ? { statusType: 'pin' } : null);
+            } else if (item.type === 'rt') {
+              return renderTweetCard(item.tweet, { statusType: 'rt', user: item.rtUser, nick: item.rtNick });
+            } else if (item.type === 'like') {
+              return renderTweetCard(item.tweet, { statusType: 'like', user: item.likeUser, nick: item.likeNick });
+            } else if (item.type === 're') {
+              return renderReplyCard(item.tweet);
+            }
+            return '';
+          })
+          .join('');
+
+        $('#feed-following-list').html(html);
+      }
+
+      /**
+       * 执行搜索
+       */
+      async function executeSearch() {
+        const keyword = $('#search-input').val().trim();
+        if (!keyword) {
+          showToast('请输入搜索内容');
+          return;
+        }
+
+        const searchBtn = $('#view-search .header-row .font-bold'); // 搜索按钮
+        const originalBtnText = searchBtn.text();
+
+        // 1. 设置加载状态
+        searchBtn.html('<i class="fa-solid fa-circle-notch fa-spin"></i>').addClass('pointer-events-none opacity-50');
+
+        try {
+          // 2. 构造指令
+          const prompt = `{{user}}正在输入关键词${keyword}进行搜索，请按照推特的搜索功能，生成对应的相关原创推文。（只需要tw形式）`;
+
+          // 3. 调用 generate API
+          const result = await generate({ user_input: prompt });
+
+          // 4. 解析结果
+          const parseResult = tryParseGeneratedContent(result);
+
+          if (parseResult.success) {
+            // 解析成功
+            const { tweetsById, feedEntries } = parseResult.data;
+
+            // 构造临时列表用于渲染
+            const searchList = [];
+            // 因为只需要 tw 形式，且按时间排序
+            // feedEntries 中的 id 对应 tweetsById 中的 key
+            // 这里我们不需要合并到 coreData，直接使用解析出的数据
+
+            // 为了让 renderTweetCard 能够处理回复关系（虽然只要求 tw，但以防万一），
+            // 我们需要临时把这些数据放入 coreData 或者直接传参。
+            // 鉴于 renderTweetCard 依赖 coreData.tweetsById 查找父级 (replyTo)，
+            // 如果生成的推文包含回复，我们需要确保父级也在其中或者被标记为 missing。
+            // 但本次需求只要求 tw 形式，所以回复关系可能较少。
+            // 我们可以利用一个临时的 scope 来渲染，或者简单地扩展 coreData 但不保存？
+            // 题目要求 "不需要储存，刷新页面后即消失"，
+            // 我们可以把这些推文合并到 coreData.tweetsById (内存中)，但**不**调用 saveFeedToTavern。
+            // 这样 renderTweetCard 就能正常工作了。
+            // 只要不保存到 Tavern，刷新页面后 coreData 就会重置为初始状态/从Tavern读取的状态。
+
+            Object.assign(coreData.tweetsById, tweetsById);
+
+            // 提取推文并排序
+            for (const entry of feedEntries) {
+              if (entry.type === 'tweet') {
+                const tweet = tweetsById[entry.id];
+                if (tweet && tweet.type === 'tw') {
+                  searchList.push(tweet);
+                }
+              }
+            }
+
+            // 按时间新到旧排序
+            searchList.sort((a, b) => {
+              const ta = Date.parse(a.author?.time) || 0;
+              const tb = Date.parse(b.author?.time) || 0;
+              return tb - ta;
+            });
+
+            // 5. 渲染搜索结果
+            if (searchList.length === 0) {
+              $('#search-results-list').html('<div class="p-8 text-center text-gray-500">未找到相关结果</div>');
+            } else {
+              const html = searchList.map(tweet => renderTweetCard(tweet, null)).join('');
+              $('#search-results-list').html(html);
+            }
+
+            // 6. 切换 UI 显示
+            $('#search-static-content, #search-static-body').hide();
+            $('#search-results-list').removeClass('hidden');
+          } else {
+            // 解析失败：显示错误弹窗
+            showParseErrorModal(result);
+          }
+        } catch (error) {
+          console.error('[Twitter] Search Error:', error);
+          showToast('搜索失败，请重试');
+        } finally {
+          // 恢复按钮状态
+          searchBtn.text(originalBtnText).removeClass('pointer-events-none opacity-50');
+        }
+      }
+
+      /**
        * 统一刷新所有视图（当 coreData 变化时调用）
        * 保存并恢复滚动位置
        */
@@ -3334,6 +3626,7 @@
         // 1. 重建并渲染首页列表
         feedList = buildFeedList(coreData);
         renderFeed();
+        renderFollowingFeed();
 
         // 2. 渲染个人主页标签页
         const profileUsername = viewingProfile?.username || currentUserProfile.username;
@@ -3766,6 +4059,9 @@
           avatar: p.avatar || '',
           cover: p.cover || '',
           lightMode: !!s.lightMode,
+          homeRefreshConfirm: s.homeRefreshConfirm !== false, // 默认为 true
+          profileRefreshConfirm: s.profileRefreshConfirm !== false, // 默认为 true
+          fallbackAvatars: Array.isArray(s.fallbackAvatars) ? s.fallbackAvatars : [],
           // 关注用户的详细信息（头像、背景）
           followingDetails: p.followingDetails || {},
         };
@@ -3803,6 +4099,9 @@
           avatar: settingsData.avatar || '',
           cover: settingsData.cover || '',
           lightMode: settingsData.lightMode === true || settingsData.lightMode === 'true',
+          homeRefreshConfirm: settingsData.homeRefreshConfirm !== false, // 默认为 true
+          profileRefreshConfirm: settingsData.profileRefreshConfirm !== false, // 默认为 true
+          fallbackAvatars: Array.isArray(settingsData.fallbackAvatars) ? settingsData.fallbackAvatars : [],
           // 关注用户的详细信息
           followingDetails: settingsData.followingDetails || {},
         };
@@ -3875,6 +4174,9 @@
               currentUserProfile.cover = parsed.cover || currentUserProfile.cover;
               currentUserProfile.followingDetails = parsed.followingDetails || {};
               systemSettings.lightMode = parsed.lightMode;
+              systemSettings.homeRefreshConfirm = parsed.homeRefreshConfirm;
+              systemSettings.profileRefreshConfirm = parsed.profileRefreshConfirm;
+              systemSettings.fallbackAvatars = parsed.fallbackAvatars || [];
               console.log('[Twitter] 已加载系统设置');
             }
           } else {
@@ -3999,6 +4301,38 @@
               },
             ]);
           }
+
+          // 查找"推特生成指令"条目
+          let commandsEntry = worldbook.find(entry => entry.name === '推特生成指令');
+          if (commandsEntry) {
+            // 解析并应用
+            const parsed = parseCommandsFromContent(commandsEntry.content);
+            if (parsed) {
+              generateCommands.homeRefresh = parsed.homeRefresh || generateCommands.homeRefresh;
+              generateCommands.profileRefresh = parsed.profileRefresh || generateCommands.profileRefresh;
+              console.log('[Twitter] 已加载生成指令');
+            }
+          } else {
+            // 创建新条目（默认禁用）
+            console.log('[Twitter] 创建"推特生成指令"条目');
+            await createWorldbookEntries(worldbookName, [
+              {
+                name: '推特生成指令',
+                enabled: false, // 默认禁用
+                strategy: {
+                  type: 'constant',
+                  keys: [],
+                  keys_secondary: { logic: 'and_any', keys: [] },
+                  scan_depth: 'same_as_global',
+                },
+                position: { type: 'after_character_definition', role: 'system', depth: 0, order: 1214 },
+                content: serializeCommandsToContent(),
+                probability: 100,
+                recursion: { prevent_incoming: false, prevent_outgoing: true, delay_until: null },
+                effect: { sticky: null, cooldown: null, delay: null },
+              },
+            ]);
+          }
         } catch (error) {
           console.error('[Twitter] loadFromWorldbook 出错:', error);
         }
@@ -4060,6 +4394,424 @@
         }
       }
 
+      /**
+       * 序列化生成指令为条目内容格式
+       * @returns {string} 条目内容
+       */
+      function serializeCommandsToContent() {
+        const commandsData = {
+          homeRefresh: generateCommands.homeRefresh || '',
+          profileRefresh: generateCommands.profileRefresh || '',
+        };
+
+        const commandsJson = JSON.stringify(commandsData, null, 2);
+
+        return `此为推特生成指令：
+      <commands>
+      ${commandsJson}
+      </commands>`;
+      }
+
+      /**
+       * 从条目内容解析生成指令
+       * @param {string} content 条目内容
+       * @returns {object|null} 解析后的指令对象
+       */
+      function parseCommandsFromContent(content) {
+        if (!content) return null;
+
+        const match = content.match(/<commands>([\s\S]*?)<\/commands>/);
+        if (!match) return null;
+
+        const raw = match[1].trim();
+        let commandsData = null;
+
+        try {
+          commandsData = JSON.parse(raw);
+        } catch (e) {
+          console.error('[Twitter] 生成指令 JSON 解析失败:', e);
+          return null;
+        }
+
+        return {
+          homeRefresh: commandsData.homeRefresh || '',
+          profileRefresh: commandsData.profileRefresh || '',
+        };
+      }
+
+      /**
+       * 保存生成指令到世界书
+       */
+      async function saveCommandsToWorldbook() {
+        try {
+          const charWorldbooks = getCharWorldbookNames('current');
+          const worldbookName = charWorldbooks.primary;
+
+          if (!worldbookName) {
+            console.warn('[Twitter] 没有绑定世界书，无法保存');
+            return;
+          }
+
+          await updateWorldbookWith(worldbookName, worldbook => {
+            return worldbook.map(entry => {
+              if (entry.name === '推特生成指令') {
+                return { ...entry, content: serializeCommandsToContent() };
+              }
+              return entry;
+            });
+          });
+
+          console.log('[Twitter] 生成指令已保存到世界书');
+        } catch (error) {
+          console.error('[Twitter] saveCommandsToWorldbook 出错:', error);
+        }
+      }
+
+      // ========== 刷新确认弹窗相关函数 ==========
+
+      /**
+       * 打开刷新确认弹窗
+       * @param {string} type - 'home' 或 'profile'
+       */
+      function openRefreshConfirmModal(type) {
+        // 检查是否需要显示确认弹窗
+        const needConfirm = type === 'home' ? systemSettings.homeRefreshConfirm : systemSettings.profileRefreshConfirm;
+
+        // 根据类型生成默认指令
+        let command = '';
+        if (type === 'home') {
+          command = generateCommands.homeRefresh;
+        } else if (type === 'profile') {
+          // 替换 {{username}} 为当前查看的用户名
+          const targetUsername = viewingProfile?.username || 'unknown';
+          command = generateCommands.profileRefresh.replace(/\{\{username\}\}/g, targetUsername);
+        }
+
+        // 如果不需要确认，直接执行刷新
+        if (!needConfirm) {
+          if (type === 'home') {
+            executeHomeRefresh(command);
+          } else if (type === 'profile') {
+            executeProfileRefresh(command);
+          }
+          return;
+        }
+
+        // 需要确认，显示弹窗
+        pendingRefreshType = type;
+        $('#refresh-command-input').val(command);
+        $('#modal-refresh-confirm').addClass('modal-visible');
+      }
+
+      /**
+       * 关闭刷新确认弹窗
+       */
+      function closeRefreshConfirmModal() {
+        $('#modal-refresh-confirm').removeClass('modal-visible');
+        pendingRefreshType = null;
+      }
+
+      /**
+       * 确认刷新
+       */
+      async function confirmRefresh() {
+        const command = $('#refresh-command-input').val().trim();
+
+        if (!command) {
+          showToast('请输入指令');
+          return;
+        }
+
+        // 先保存当前刷新类型（因为closeRefreshConfirmModal会清空它）
+        const refreshType = pendingRefreshType;
+
+        // 保存指令到状态（如果用户修改了）
+        if (refreshType === 'home') {
+          generateCommands.homeRefresh = command;
+        } else if (refreshType === 'profile') {
+          // profile 指令不保存修改（因为包含具体用户名）
+          // 但如果用户修改的是模板，则可以保存
+        }
+
+        closeRefreshConfirmModal();
+
+        // 执行刷新
+        if (refreshType === 'home') {
+          await executeHomeRefresh(command);
+        } else if (refreshType === 'profile') {
+          await executeProfileRefresh(command);
+        }
+
+        // 保存指令到世界书
+        await saveCommandsToWorldbook();
+      }
+
+      /**
+       * 执行首页刷新
+       * @param {string} userInput - 用户输入的指令
+       */
+      async function executeHomeRefresh(userInput) {
+        // 禁用按钮并显示旋转动画
+        $('#refresh-btn').addClass('fa-spin pointer-events-none opacity-50');
+
+        try {
+          // 调用 generate API
+          const result = await generate({ user_input: userInput });
+
+          // 尝试解析返回的内容
+          const parseResult = tryParseGeneratedContent(result);
+
+          if (parseResult.success) {
+            // 解析成功：合并新数据到 coreData
+            mergeNewFeedData(parseResult.data);
+
+            // 刷新视图并滚动到顶部
+            refreshAllViews();
+            $('#view-home').scrollTop(0);
+
+            // 保存到酒馆楼层
+            await saveFeedToTavern(coreData);
+
+            showToast('刷新成功');
+          } else {
+            // 解析失败：显示错误弹窗
+            showParseErrorModal(result);
+          }
+        } catch (error) {
+          console.error('[Twitter] executeHomeRefresh 出错:', error);
+          showToast('刷新失败');
+        } finally {
+          // 恢复按钮状态
+          $('#refresh-btn').removeClass('fa-spin pointer-events-none opacity-50');
+        }
+      }
+
+      /**
+       * 执行个人主页刷新
+       * @param {string} userInput - 用户输入的指令
+       */
+      async function executeProfileRefresh(userInput) {
+        if (!viewingProfile) return;
+
+        const targetUsername = viewingProfile.username;
+
+        // 禁用按钮并显示旋转动画
+        $('#profile-refresh-btn i').addClass('fa-spin');
+        $('#profile-refresh-btn').addClass('pointer-events-none opacity-50');
+
+        try {
+          // 调用 generate API
+          const result = await generate({ user_input: userInput });
+
+          // 尝试解析返回的内容
+          const parseResult = tryParseProfileContent(result, targetUsername);
+
+          if (parseResult.success) {
+            // 1. 合并推文数据到 coreData
+            if (parseResult.feedData) {
+              mergeNewFeedData(parseResult.feedData);
+            }
+
+            // 2. 临时缓存 profile 数据
+            if (parseResult.profileData) {
+              tempProfileCache[targetUsername] = parseResult.profileData;
+              Object.assign(viewingProfile, parseResult.profileData);
+            }
+
+            // 3. 刷新所有视图
+            refreshAllViews();
+
+            // 4. 重新渲染个人主页
+            renderProfile(viewingProfile);
+
+            // 5. 保存推文数据到酒馆楼层
+            await saveFeedToTavern(coreData);
+
+            showToast('刷新成功');
+          } else {
+            // 解析失败：显示错误弹窗
+            showParseErrorModal(result);
+          }
+        } catch (error) {
+          console.error('[Twitter] executeProfileRefresh 出错:', error);
+          showToast('刷新失败');
+        } finally {
+          // 恢复按钮状态
+          $('#profile-refresh-btn i').removeClass('fa-spin');
+          $('#profile-refresh-btn').removeClass('pointer-events-none opacity-50');
+        }
+      }
+
+      // ========== 设置页面相关函数 ==========
+
+      /**
+       * 打开设置页面
+       */
+      async function openSettingsPage() {
+        // 填充当前设置值
+        $('#settings-home-refresh-confirm').prop('checked', systemSettings.homeRefreshConfirm !== false);
+        $('#settings-profile-refresh-confirm').prop('checked', systemSettings.profileRefreshConfirm !== false);
+        $('#settings-home-refresh-command').val(generateCommands.homeRefresh);
+        $('#settings-profile-refresh-command').val(generateCommands.profileRefresh);
+
+        // 如果随机头像列表为空，初始化为默认头像列表并保存
+        if (!systemSettings.fallbackAvatars || systemSettings.fallbackAvatars.length === 0) {
+          systemSettings.fallbackAvatars = [...DEFAULT_FALLBACK_AVATARS];
+          await saveSettingsToWorldbook();
+        }
+
+        // 渲染随机头像列表
+        renderFallbackAvatarList();
+
+        showView('view-settings', false);
+
+        // 绑定输入事件（使用 off 先移除旧绑定避免重复）
+        $('#settings-home-refresh-confirm')
+          .off('change')
+          .on('change', async function () {
+            systemSettings.homeRefreshConfirm = $(this).is(':checked');
+            await saveSettingsToWorldbook();
+          });
+
+        $('#settings-profile-refresh-confirm')
+          .off('change')
+          .on('change', async function () {
+            systemSettings.profileRefreshConfirm = $(this).is(':checked');
+            await saveSettingsToWorldbook();
+          });
+
+        $('#settings-home-refresh-command')
+          .off('blur')
+          .on('blur', async function () {
+            const newVal = $(this).val().trim();
+            if (newVal && newVal !== generateCommands.homeRefresh) {
+              generateCommands.homeRefresh = newVal;
+              await saveCommandsToWorldbook();
+            }
+          });
+
+        $('#settings-profile-refresh-command')
+          .off('blur')
+          .on('blur', async function () {
+            const newVal = $(this).val().trim();
+            if (newVal && newVal !== generateCommands.profileRefresh) {
+              generateCommands.profileRefresh = newVal;
+              await saveCommandsToWorldbook();
+            }
+          });
+      }
+
+      /**
+       * 关闭设置页面
+       */
+      function closeSettingsPage() {
+        showView('view-profile', true);
+      }
+
+      /**
+       * 渲染随机头像列表
+       */
+      function renderFallbackAvatarList() {
+        const list = systemSettings.fallbackAvatars || [];
+        const container = $('#fallback-avatar-list');
+        container.empty();
+
+        if (list.length === 0) {
+          container.html(`
+            <div class="text-sm py-4 text-center" style="color: var(--app-text-dim)">
+              列表为空，将使用默认头像
+            </div>
+          `);
+          return;
+        }
+
+        list.forEach((url, index) => {
+          const html = `
+            <div class="flex items-center gap-3 py-2" data-avatar-index="${index}">
+              <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-700 shrink-0">
+                <img src="${escapeHtml(
+                  url,
+                )}" class="w-full h-full object-cover fallback-avatar-preview" onerror="this.src=''" />
+              </div>
+              <input
+                type="text"
+                class="edit-input flex-1 min-w-0 fallback-avatar-input"
+                value="${escapeHtml(url)}"
+                placeholder="头像 URL"
+              />
+              <button
+                class="px-3 py-1.5 text-sm font-bold rounded-full transition hover:bg-red-500/20 border shrink-0"
+                style="border-color: var(--app-border); color: var(--app-text)"
+                onclick="removeFallbackAvatar(${index})"
+              >
+                删除
+              </button>
+            </div>
+          `;
+          container.append(html);
+        });
+
+        // 绑定输入框变化事件
+        container
+          .find('.fallback-avatar-input')
+          .off('blur')
+          .on('blur', async function () {
+            const idx = $(this).closest('[data-avatar-index]').data('avatarIndex');
+            const newUrl = $(this).val().trim();
+
+            if (newUrl !== systemSettings.fallbackAvatars[idx]) {
+              systemSettings.fallbackAvatars[idx] = newUrl;
+              // 更新预览图
+              $(this).siblings('.w-10').find('img').attr('src', newUrl);
+              // 清除头像缓存以应用新头像
+              Object.keys(avatarCache).forEach(k => delete avatarCache[k]);
+              await saveSettingsToWorldbook();
+            }
+          });
+
+        // 输入时实时更新预览
+        container
+          .find('.fallback-avatar-input')
+          .off('input')
+          .on('input', function () {
+            const newUrl = $(this).val().trim();
+            $(this).closest('[data-avatar-index]').find('.fallback-avatar-preview').attr('src', newUrl);
+          });
+      }
+
+      /**
+       * 添加随机头像
+       */
+      async function addFallbackAvatar() {
+        if (!systemSettings.fallbackAvatars) {
+          systemSettings.fallbackAvatars = [];
+        }
+        // 添加一个空的头像URL
+        systemSettings.fallbackAvatars.push('');
+        renderFallbackAvatarList();
+
+        // 滚动到底部
+        const container = $('#fallback-avatar-list');
+        container.scrollTop(container[0].scrollHeight);
+
+        // 聚焦到新添加的输入框
+        container.find('.fallback-avatar-input').last().focus();
+      }
+
+      /**
+       * 删除随机头像
+       * @param {number} index - 要删除的索引
+       */
+      async function removeFallbackAvatar(index) {
+        if (!systemSettings.fallbackAvatars) return;
+
+        systemSettings.fallbackAvatars.splice(index, 1);
+        // 清除头像缓存以应用更改
+        Object.keys(avatarCache).forEach(k => delete avatarCache[k]);
+        renderFallbackAvatarList();
+        await saveSettingsToWorldbook();
+      }
+
       // ========== 世界书集成结束 ==========
 
       $(document).ready(async function () {
@@ -4099,30 +4851,34 @@
         });
 
         // 首页推文卡片点击
-        $('#home-feed-recommend').on('click', '[data-tweet-id]', function (e) {
-          // 如果点击的是头像或者昵称区域，跳转到个人主页
-          const target = $(e.target);
-          if (target.closest('.action-btn-group').length) return;
+        $('#home-feed-recommend, #home-feed-following, #search-results-list').on(
+          'click',
+          '[data-tweet-id]',
+          function (e) {
+            // 如果点击的是头像或者昵称区域，跳转到个人主页
+            const target = $(e.target);
+            if (target.closest('.action-btn-group').length) return;
 
-          // 检查是否点击了用户头像/昵称区域 (增加 class 标识会更稳健，这里通过 DOM 结构判断)
-          // 假设我们给头像和名字加一个统一的类名或者单独判断
-          // 现有的 tweet-card 结构里，头像是 .avatar-tweet，名字是 .font-bold
-          if (target.closest('.avatar-tweet').length || target.closest('.font-bold.hover\\:underline').length) {
-            // 找到 tweetId
-            const tweetId = $(this).data('tweetId');
-            const tweet = coreData.tweetsById[tweetId];
-            if (tweet && tweet.author) {
-              e.stopPropagation(); // 阻止进入详情页
-              goToProfile(tweet.author.username);
-              return;
+            // 检查是否点击了用户头像/昵称区域 (增加 class 标识会更稳健，这里通过 DOM 结构判断)
+            // 假设我们给头像和名字加一个统一的类名或者单独判断
+            // 现有的 tweet-card 结构里，头像是 .avatar-tweet，名字是 .font-bold
+            if (target.closest('.avatar-tweet').length || target.closest('.font-bold.hover\\:underline').length) {
+              // 找到 tweetId
+              const tweetId = $(this).data('tweetId');
+              const tweet = coreData.tweetsById[tweetId];
+              if (tweet && tweet.author) {
+                e.stopPropagation(); // 阻止进入详情页
+                goToProfile(tweet.author.username);
+                return;
+              }
             }
-          }
 
-          const tweetId = $(this).data('tweetId');
-          if (tweetId) {
-            goToDetail(tweetId);
-          }
-        });
+            const tweetId = $(this).data('tweetId');
+            if (tweetId) {
+              goToDetail(tweetId);
+            }
+          },
+        );
 
         // 详情页祖先链点击
         $('#detail-ancestors').on('click', '.ancestor-row', function (e) {
@@ -4226,9 +4982,9 @@
           goBack();
         });
 
-        // 刷新按钮 - 调用 generate API
-        $('#refresh-btn').click(async function () {
-          await refreshHomeFeed();
+        // 刷新按钮 - 打开确认弹窗
+        $('#refresh-btn').click(function () {
+          openRefreshConfirmModal('home');
         });
 
         // 日夜模式切换
@@ -4978,50 +5734,6 @@
 
       // 存储解析失败的内容
       let parseErrorContent = '';
-
-      /**
-       * 刷新首页信息流
-       * 调用 generate API 让 AI 生成新推文，然后解析并合并到当前数据中
-       */
-      async function refreshHomeFeed() {
-        // 显示加载遮罩
-        $('#refresh-loading-overlay').removeClass('hidden').addClass('flex');
-        $('#refresh-btn').addClass('fa-spin');
-
-        try {
-          // 调用 generate API
-          const result = await generate({
-            user_input: '刷新主页，增加新的推文。注意对{{user}}最新的推文以及回复做出回应。',
-          });
-
-          // 尝试解析返回的内容
-          const parseResult = tryParseGeneratedContent(result);
-
-          if (parseResult.success) {
-            // 解析成功：合并新数据到 coreData
-            mergeNewFeedData(parseResult.data);
-
-            // 刷新视图并滚动到顶部
-            refreshAllViews();
-            $('#view-home').scrollTop(0);
-
-            // 保存到酒馆楼层
-            await saveFeedToTavern(coreData);
-
-            showToast('刷新成功');
-          } else {
-            // 解析失败：显示错误弹窗
-            showParseErrorModal(result);
-          }
-        } catch (error) {
-          console.error('[Twitter] refreshHomeFeed 出错:', error);
-          showToast('刷新失败');
-        } finally {
-          // 隐藏加载遮罩
-          $('#refresh-loading-overlay').removeClass('flex').addClass('hidden');
-          $('#refresh-btn').removeClass('fa-spin');
-        }
-      }
 
       /**
        * 尝试解析 AI 生成的内容
