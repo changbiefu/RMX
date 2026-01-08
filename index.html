@@ -1522,14 +1522,21 @@
         // 尝试构建他人资料对象
         let targetUser = null;
 
+        // 0. 优先查找是否在关注列表中，如果有，优先使用关注列表中的自定义信息(avatar/cover)
+        // 但基本信息(nick/bio等)仍需从 cache 或 tweet 中获取
+        let followingInfo = null;
+        if (currentUserProfile.followingDetails && currentUserProfile.followingDetails[username]) {
+          followingInfo = currentUserProfile.followingDetails[username];
+        }
+
         // 1. 优先使用临时 profile 缓存（刷新时获取的数据）
         const cachedProfile = tempProfileCache[username];
         if (cachedProfile) {
           targetUser = {
             ...cachedProfile,
-            // 确保 avatar 和 cover 有值
-            avatar: cachedProfile.avatar || getDisplayAvatar(username),
-            cover: cachedProfile.cover || null,
+            // 确保 avatar 和 cover 有值，优先用 cached，其次用 followingInfo，再次用默认
+            avatar: cachedProfile.avatar || (followingInfo && followingInfo.avatar) || getDisplayAvatar(username),
+            cover: cachedProfile.cover || (followingInfo && followingInfo.cover) || null,
             followingList: [],
           };
         }
@@ -1546,10 +1553,10 @@
             targetUser = {
               nickname: latest.nickname,
               username: latest.username,
-              avatar: latest.avatar,
+              avatar: (followingInfo && followingInfo.avatar) || latest.avatar,
               verified: Boolean(latest.verified),
-              // 以下字段因为只存在于 Page 中，这里只能给默认值
-              cover: null, // 将在 renderProfile 中处理为默认
+              // 使用关注列表中的 cover，否则为 null (renderProfile 会转为默认)
+              cover: (followingInfo && followingInfo.cover) || null,
               bio: '',
               location: '',
               website: '',
@@ -1566,9 +1573,10 @@
           targetUser = {
             nickname: username,
             username: username,
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username, // 随机头像
+            avatar:
+              (followingInfo && followingInfo.avatar) || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username, // 随机头像
             verified: false,
-            cover: null,
+            cover: (followingInfo && followingInfo.cover) || null,
             bio: '暂无简介',
             location: '',
             website: '',
@@ -1927,6 +1935,9 @@
         };
 
         closeEditFollowingModal();
+
+        // 清除头像缓存
+        delete avatarCache[username];
 
         // 保存到世界书
         await saveSettingsToWorldbook();
